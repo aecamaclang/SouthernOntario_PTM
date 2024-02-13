@@ -1,0 +1,18 @@
+﻿total_cost,strategies,species_groups,threshold,number_of_species,budget.max
+0,Baseline,,10,0,0
+1.5,S3,Alvar species | Forest species | Oak savannah species,10,3,1.5
+5.51,S2,Artificial structure dependent species | Forest species | Naturalized open habitat species | Oak savannah species,10,4,5.51
+6.33,S3 + S5,Alvar species | Forest species | Oak savannah species | Riverine species | Snakes and lizard | Turtles,10,6,6.33
+10.15,S14,Alvar species | Artificial structure dependent species | Forest species | Mixed forest species | Mussels | Naturalized open habitat species | Oak savannah species | Turtles | Wetland species,10,9,10.15
+11.82,S7,Artificial structure dependent species | Forest species | Mixed forest species | Naturalized open habitat species | Oak savannah species | Riparian species | Sandy species | Snakes and lizard | Turtles | Wetland species,10,10,11.82
+13.32,S3 + S7,Alvar species | Artificial structure dependent species | Forest species | Mixed forest species | Naturalized open habitat species | Oak savannah species | Riparian species | Sandy species | Snakes and lizard | Turtles | Wetland species,10,11,13.32
+18.15,S3 + S5 + S7,Alvar species | Artificial structure dependent species | Forest species | Mixed forest species | Naturalized open habitat species | Oak savannah species | Riparian species | Riverine species | Sandy species | Snakes and lizard | Turtles | Wetland species,10,12,18.15
+26.8,S5 + S7 + S14,Alvar species | Artificial structure dependent species | Forest species | Mixed forest species | Mussels | Naturalized open habitat species | Oak savannah species | Riparian species | Riverine species | Sandy species | Snakes and lizard | Turtles | Wetland species,10,13,26.8
+112.08,S5 + S11 + S14,Alvar species | Artificial structure dependent species | Bats | Forest species | Mixed forest species | Mussels | Naturalized open habitat species | Oak savannah species | Riparian species | Riverine species | Sandy species | Snakes and lizard | Turtles | Wetland species,10,14,112.08
+0,Baseline,,15,0,0
+4.83,S5,Turtles,15,1,4.83
+10.15,S14,Alvar species | Forest species,15,2,10.15
+14.98,S5 + S14,Alvar species | Forest species | Turtles,15,3,14.98
+96.42,S5 + S10,Alvar species | Forest species | Naturalized open habitat species | Turtles,15,4,96.42
+97.1,S11,Alvar species | Forest species | Naturalized open habitat species | Sandy species | Turtles | Wetland species,15,6,97.1
+113.39,S15,Alvar species | Artificial structure dependent species | Bats | Forest species | Mixed forest species | Naturalized open habitat species | Oak savannah species | Riparian species | Sandy species | Turtles | Wetland species,15,11,113.39

@@ -1,0 +1,1087 @@
+---
+title: "PTM_SouthernON_AI"
+author: "AranyaIyer"
+date: "2023-03-10" ####LAST UPDATED  -> August 9th, 2023
+output: html_document
+---
+
+POP step graph - ONLY 60% 
+
+```{r}
+
+# library(consOpt)
+library(ggrepel)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+
+cols <- c("60" = "black")
+
+# Specify paths to subfolders within current working directory
+input <- here("analysis", "data", "raw") # where raw data files are located
+derived <- here("analysis", "data","Dec042023") # where compiled/summarized data are located
+results_pre <- here("analysis", "results","Dec042023") # where results of previous analysis are saved 
+results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
+figures <- here("analysis", "figures","Dec042023") # where plots should be saved
+
+###POP results 
+results.best <- read.csv(paste0(results, "/Complementarity_best.csv"), header = TRUE) 
+best <- read.csv(paste0(results, "/ExpPerform_best.csv"), header = TRUE)
+
+PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
+  
+  tmp <- summary.results
+  
+  tmp$total_cost <- (tmp$total_cost / 10^6) # rescale x-axis to millions
+  tmp$threshold <- round(tmp$threshold) # remove decimal points
+  
+  # Create plot object
+  this.plot <- ggplot(tmp, aes(
+    x = total_cost, 
+    y = number_of_species, 
+    group = threshold, 
+    # linetype = factor(threshold),
+    # shape = factor(threshold), 
+    label = ifelse(strategies=="Baseline"," ",strategies) #nolabel, comment out 
+  )
+  ) +
+    geom_step(aes(color = factor(threshold)), 
+      size = 0.8,
+      # alpha = 0.6
+    ) +
+    geom_point(
+      aes(color = factor(threshold)),
+      size = 2
+      ,show.legend = FALSE
+    ) +
+    theme_cowplot() +
+    theme(legend.position = "none") +scale_colour_manual(values = cols) +
+    scale_y_continuous(
+      # labels = function (x) floor(x), 
+      breaks = min(tmp$number_of_species):length(benefits.matrix),
+      limits = c(min(tmp$number_of_species), length(benefits.matrix))
+    ) +
+    labs(x = "Total cost (millions CAD $)", 
+          y = expression("Number of species groups secured " >= "60% POP")
+    )
+  
+  if(draw.labels){
+  this.plot <- this.plot +
+    geom_text_repel(size = 3.5
+                    , hjust = "left"
+                    ,nudge_x = -100 #-1.25,0.5 work okay
+                    ,nudge_y = 0.25 #0.25,0.5 work okay
+                    ,xlim = c(0, max(tmp$total_cost)+5),
+                    ylim = c(-0.5, max(tmp$number_of_species)+0.5),
+                    show.legend = FALSE
+                    , direction = "both"
+    )
+  }
+
+  plot(this.plot)
+  this.plot
+}
+
+
+##POP >60%
+results.best.60 <-results.best%>%filter(threshold==60)
+optcurve.best.60 <- PlotOptCurve(results.best.60, best, draw.labels = TRUE)
+optcurve.best.60
+ggsave(paste0(figures, "/Complementarity_best.60.png"), optcurve.best.60, width = 180, height = 120, units = "mm")
+ggsave(paste0(figures, "/Complementarity_best.60.nolabels.png"), optcurve.best.60, width = 180, height = 120, units = "mm")
+```
+
+POP step graph - ONLY 60% - Annualized values
+
+```{r}
+
+# library(consOpt)
+library(ggrepel)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+
+cols <- c("60" = "black")
+
+# Specify paths to subfolders within current working directory
+input <- here("analysis", "data", "raw") # where raw data files are located
+derived <- here("analysis", "data","Dec042023") # where compiled/summarized data are located
+results_pre <- here("analysis", "results","Dec042023") # where results of previous analysis are saved 
+results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
+figures <- here("analysis", "figures","Dec042023") # where plots should be saved
+
+results.best <- read.csv(paste0(results, "/Complementarity_best_annual.csv"), header = TRUE) 
+best <- read.csv(paste0(results, "/ExpPerform_best.csv"), header = TRUE)
+
+PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
+  
+  tmp <- summary.results
+  
+  tmp$total_cost <- (tmp$total_cost) # already in millions
+  tmp$threshold <- round(tmp$threshold) # remove decimal points
+  
+  # Create plot object
+  this.plot <- ggplot(tmp, aes(
+    x = total_cost, 
+    y = number_of_species, 
+    group = threshold, 
+    # linetype = factor(threshold),
+    # shape = factor(threshold), 
+    label = ifelse(strategies=="Baseline"," ",strategies) #nolabel, comment out 
+  )
+  ) +
+    geom_step(aes(color = factor(threshold)), 
+      size = 0.8,
+      # alpha = 0.6
+    ) +
+    geom_point(
+      aes(color = factor(threshold)),
+      size = 2
+      ,show.legend = FALSE
+    ) +
+    theme_cowplot() +
+    theme(legend.position = "none") +scale_colour_manual(values = cols) +
+    scale_y_continuous(
+      # labels = function (x) floor(x), 
+      breaks = min(tmp$number_of_species):length(benefits.matrix),
+      limits = c(min(tmp$number_of_species), length(benefits.matrix))
+    ) +
+    scale_x_continuous(breaks=seq(min(tmp$total_cost), max(tmp$total_cost), 25))+
+    labs(x = "Total annualized cost (millions CAD $)", 
+          y = expression("Number of species groups secured " >= "60% POP")
+    )
+  
+  if(draw.labels){
+  this.plot <- this.plot +
+    geom_text_repel(size = 3.5
+                    , hjust = "left"
+                    ,nudge_x = -1 #-1.25,0.5 work okay
+                    ,nudge_y = 0.25 #0.25,0.5 work okay
+                    ,xlim = c(0, max(tmp$total_cost)+5),
+                    ylim = c(-0.5, max(tmp$number_of_species)+0.5),
+                    show.legend = FALSE
+                    , direction = "both"
+    )
+  }
+
+  plot(this.plot)
+  this.plot
+}
+
+
+##POP >60%
+results.best.60 <-results.best%>%filter(threshold==60)
+optcurve.best.60 <- PlotOptCurve(results.best.60, best, draw.labels = TRUE)
+ggsave(paste0(figures, "/Complementarity_best.60.annual.png"), optcurve.best.60, width = 180, height = 120, units = "mm")
+ggsave(paste0(figures, "/Complementarity_best.60.nolabels.annual.png"), optcurve.best.60, width = 180, height = 120, units = "mm")
+```
+
+Benefits step graph - ONLY 15%
+```{r}
+
+library(consOpt)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+
+cols <- c("15" = "black")
+
+
+PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
+  
+  tmp <- summary.results
+  
+  tmp$total_cost <- (tmp$total_cost / 10^6) # rescale x-axis to millions
+  tmp$threshold <- round(tmp$threshold) # remove decimal points
+  
+  # Create plot object
+  this.plot <- ggplot(tmp, aes(
+    x = total_cost, 
+    y = number_of_species, 
+    group = threshold, 
+    # linetype = factor(threshold),
+    # shape = factor(threshold), 
+    label = ifelse(strategies=="Baseline"," ",strategies)
+  )
+  ) +
+    geom_step(aes(color = factor(threshold)), 
+      # size = 0.8,
+      # alpha = 0.6
+    ) +
+    geom_point(
+      aes(color = factor(threshold)),
+      size = 2
+      ,show.legend = FALSE
+    ) +
+    theme_cowplot() +
+    theme(legend.position = "none"
+    ) +scale_colour_manual(values = cols) +
+    scale_y_continuous(
+      # labels = function (x) floor(x), 
+      breaks = min(tmp$number_of_species):length(benefits.matrix),
+      limits = c(min(tmp$number_of_species), length(benefits.matrix))
+    ) +
+    labs(x = "Total cost (millions CAD $)", 
+         y = expression("Number of species groups benefit " >= "15%")
+         # , color="Increase in expected benefit (%)"
+         # , linetype = "Persistence\nthreshold (%)"
+         # , shape = "Increase in POP (%)"
+    )
+  
+  if(draw.labels){
+    this.plot <- this.plot + 
+      geom_text_repel(size = 3.5
+                    , hjust = "left"
+                    ,nudge_x = -100 #-1.25,0.5 work okay
+                    ,nudge_y = 0.25 #0.25,0.5 work okay
+                    ,xlim = c(0, max(tmp$total_cost)+5),
+                    ylim = c(-0.5, max(tmp$number_of_species)+0.5),
+                    show.legend = FALSE
+                    , direction = "both"
+      )
+  }
+  
+  plot(this.plot)
+  this.plot
+}
+
+# Specify paths to subfolders within current working directory
+results_ben <- here("analysis", "results","Benefitonly","Feb022024") # where results of benefits analysis should be saved
+figures_ben <- here("analysis", "figures","Benefitonly","Feb022024") # where plots should be saved
+
+
+results.best <- read.csv(paste0(results_ben, "/Complementarity_best_Benefitsonly_10_15.csv"), header = TRUE) 
+best <- read.csv(paste0(results_ben, "/ExpPerform_best_Benefitsonly.csv"), header = TRUE) 
+
+##Benefits >15% 
+results.best.15 <-results.best%>%filter(threshold==15)
+optcurve.best.15 <- PlotOptCurve(results.best.15, best, draw.labels = TRUE)
+ggsave(paste0(figures_ben, "/Complementarity_best_Benefitsonly.15nolabels.png"), optcurve.best.15, width = 180, height = 120, units = "mm")
+
+# ##Benefits >10,15% 
+# results.best.10.15 <-results.best%>%filter(threshold==15|threshold==10)
+# optcurve.best.10.15 <- PlotOptCurve(results.best.10.15, best, draw.labels = TRUE)
+# ggsave(paste0(figures_ben, "/Complementarity_best_Benefitsonly.10.15.png"), optcurve.best.10.15, width = 180, height = 120, units = "mm")
+
+```
+
+Benefits step graph - ONLY 15% - Annualized values
+```{r}
+
+# library(consOpt)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+
+cols <- c("15" = "black")
+
+
+PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
+  
+  tmp <- summary.results
+  
+  tmp$total_cost <- (tmp$total_cost) # rescale x-axis to millions
+  tmp$threshold <- round(tmp$threshold) # remove decimal points
+  
+  # Create plot object
+  this.plot <- ggplot(tmp, aes(
+    x = total_cost, 
+    y = number_of_species, 
+    group = threshold, 
+    # linetype = factor(threshold),
+    # shape = factor(threshold), 
+    label = ifelse(strategies=="Baseline"," ",strategies)
+  )
+  ) +
+    geom_step(aes(color = factor(threshold)), 
+      # size = 0.8,
+      # alpha = 0.6
+    ) +
+    geom_point(
+      aes(color = factor(threshold)),
+      size = 2
+      ,show.legend = FALSE
+    ) +
+    theme_cowplot() +
+    theme(legend.position = "none"
+    ) +scale_colour_manual(values = cols) +
+    scale_y_continuous(
+      # labels = function (x) floor(x), 
+      breaks = min(tmp$number_of_species):length(benefits.matrix),
+      limits = c(min(tmp$number_of_species), length(benefits.matrix))
+    ) +
+    scale_x_continuous(breaks=seq(min(tmp$total_cost), max(tmp$total_cost), 25))+
+    labs(x = "Total annualized cost (millions CAD $)",
+         y = expression("Number of species groups benefitting " >= "15%")
+         # , color="Increase in expected benefit (%)"
+         # , linetype = "Persistence\nthreshold (%)"
+         # , shape = "Increase in POP (%)"
+    )
+  
+  if(draw.labels){
+    this.plot <- this.plot + 
+      geom_text_repel(size = 3.5
+                    , hjust = "left"
+                    ,nudge_x = -1 #-1.25,0.5 work okay
+                    ,nudge_y = 0.25 #0.25,0.5 work okay
+                    ,xlim = c(0, max(tmp$total_cost)+5),
+                    ylim = c(-0.5, max(tmp$number_of_species)+0.5),
+                    show.legend = FALSE
+                    , direction = "both"
+      )
+  }
+  
+  plot(this.plot)
+  this.plot
+}
+
+# Specify paths to subfolders within current working directory
+results_ben <- here("analysis", "results","Benefitonly","Feb022024") # where results of benefits analysis should be saved
+figures_ben <- here("analysis", "figures","Benefitonly","Feb022024") # where plots should be saved
+
+
+results.best <- read.csv(paste0(results_ben, "/Complementarity_best_Benefitsonly_10_15_annual.csv"), header = TRUE) 
+best <- read.csv(paste0(results_ben, "/ExpPerform_best_Benefitsonly.csv"), header = TRUE) 
+
+##Benefits >15% 
+results.best.15 <-results.best%>%filter(threshold==15)
+optcurve.best.15 <- PlotOptCurve(results.best.15, best, draw.labels = FALSE)
+ggsave(paste0(figures_ben, "/Complementarity_best_Benefitsonly.15.nolabels.annual.png"), optcurve.best.15, width = 180, height = 120, units = "mm")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+Bar plots
+
+```{r}
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+
+figures <- here("analysis", "figures","Dec042023") # where plots should be saved
+results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
+exp.perf <- read.csv(paste0(results, "/ExpPerform_all.csv"), header = TRUE) 
+best <- exp.perf %>% select(contains(c("Group","Best")))
+
+best$Ecological.Group<-gsub("species","",as.character(best$Ecological.Group))
+best$Ecological.Group<-gsub("Artificial structure dependent","Structure dependent",as.character(best$Ecological.Group))
+best$Ecological.Group<-gsub("Naturalized open habitat","Nat.open habitat",as.character(best$Ecological.Group))
+best <- best %>% rename(SpeciesGroup = Ecological.Group)
+
+
+######################Baseline
+best_bs <- best %>% select(contains(c("Group","Baseline")))
+best_bs <- best_bs %>% rename(POP = Wt.Best_Baseline)
+
+plot1 <- ggplot(best_bs,aes(y=POP, x= reorder(SpeciesGroup, -POP))) + 
+  geom_bar(stat="identity", fill="ivory4")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")
+
+ggsave(paste0(figures, "/Barplot_baseline.png"), plot1, width = 180, height = 120, units = "mm")
+
+######################S11 
+best_bs11 <- best %>% select(contains(c("Group","Baseline","S11")))
+best_bs11$Wt.Best_S11 <- best_bs11$Wt.Best_S11-best_bs11$Wt.Best_Baseline
+best_bs11 <- best_bs11 %>% rename(S11 = Wt.Best_S11,Baseline = Wt.Best_Baseline )
+best_bs11 <- best_bs11%>%pivot_longer(cols = c(Baseline,S11))
+best_bs11 <- best_bs11 %>% rename(Strategy = name, POP = value)
+best_bs11$Strategy <- as.factor(best_bs11$Strategy)
+
+best_bs11$Strategy <- factor(best_bs11$Strategy, levels = c('S11','Baseline'))
+plot2 <- ggplot(best_bs11, aes(fill=Strategy, y=POP, x= reorder(SpeciesGroup, -POP))) + 
+  geom_bar(position="stack", stat="identity")+
+  theme_bw()+
+  scale_fill_manual(values=c( "deepskyblue4","ivory4"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")
+
+ggsave(paste0(figures, "/Barplot_S11.png"), plot2, width = 180, height = 120, units = "mm")
+
+
+#####################S15
+best_bs15 <- best %>% select(contains(c("Group","Baseline","S15")))
+best_bs15$Wt.Best_S15 <- best_bs15$Wt.Best_S15-best_bs15$Wt.Best_Baseline
+best_bs15 <- best_bs15 %>% rename(S15 = Wt.Best_S15,Baseline = Wt.Best_Baseline )
+best_bs15 <- best_bs15%>%pivot_longer(cols = c(Baseline,S15))
+best_bs15 <- best_bs15 %>% rename(Strategy = name, POP = value)
+best_bs15$Strategy <- as.factor(best_bs15$Strategy)
+
+best_bs15$Strategy <- factor(best_bs15$Strategy, levels = c('S15','Baseline'))
+
+plot3 <- ggplot(best_bs15, aes(fill=Strategy, y=POP, x= reorder(SpeciesGroup, -POP))) + 
+  geom_bar(position="stack", stat="identity")+
+  theme_bw()+
+  scale_fill_manual(values=c( "orange","ivory4"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")
+
+ggsave(paste0(figures, "/Barplot_S15.png"), plot3, width = 180, height = 120, units = "mm")
+
+
+########################### How much is S15 better than S11? 
+
+best_bs115 <- best %>% select(contains(c("Group","Baseline","S11","S15")))
+best_bs115$Wt.Best_S15 <- best_bs115$Wt.Best_S15-best_bs115$Wt.Best_S11 
+best_bs115$Wt.Best_S11 <- best_bs115$Wt.Best_S11-best_bs115$Wt.Best_Baseline
+best_bs115 <- best_bs115 %>% 
+  rename(
+    S11 = Wt.Best_S11,
+    S15 = Wt.Best_S15,
+    Baseline = Wt.Best_Baseline
+  )
+best_bs115 <- best_bs115%>%pivot_longer(cols = c(Baseline,S11,S15))
+best_bs115 <- best_bs115 %>% 
+  rename(Strategy = name, POP = value
+  )
+best_bs115$Strategy <- as.factor(best_bs115$Strategy)
+best_bs115$Strategy <- factor(best_bs115$Strategy, levels = c('S15','S11','Baseline'))
+
+
+#######Rounding up to show Mussels touching the 60%
+best_bs115$POP <- round(best_bs115$POP, digits=1)
+
+####changing species group to factor and manually reorder by baseline value the ones who have the same POP at S15 
+
+best_bs115$SpeciesGroup = factor(best_bs115$SpeciesGroup, levels = c("Working landscapes ","Forest ", "Nat.open habitat ","Sandy ", "Alvar ", "Snakes and lizard", "Structure dependent ", "Mixed forest ", "Wetland ", "Riparian ", "Mussels", "Oak savannah ", "Riverine ", "Turtles", "Bats", "Ciscos"), ordered = TRUE)
+##
+
+plot4 <- ggplot(best_bs115, aes(fill=Strategy, y=POP, x= reorder(SpeciesGroup, -POP))) + 
+  geom_bar(position="stack", stat="identity")+
+  theme_bw()+
+  scale_fill_manual(values=c( "orange","deepskyblue4","ivory4"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        panel.border = element_blank()
+)+
+  geom_hline(yintercept = 60)+
+  geom_hline(yintercept = 50)+
+  labs(x="Species Group", y = "Probability of persistence (%)")
+
+plot4
+
+ggsave(paste0(figures, "/Barplot_S1115.png"), plot4, width = 180, height = 120, units = "mm")
+ggsave(paste0(figures, "/Barplot_S1115_noborder.png"), plot4, width = 180, height = 120, units = "mm")
+
+
+######################S11 + S5
+
+best_bs1105 <- best %>% select(contains(c("Group","Baseline","S11","S5")))
+best_bs1105$Wt.Best_S5 <- best_bs1105$Wt.Best_S5-best_bs1105$Wt.Best_S11
+best_bs1105$Wt.Best_S5[best_bs1105$Wt.Best_S5 <0] <- 0
+best_bs1105$Wt.Best_S11 <- best_bs1105$Wt.Best_S11-best_bs1105$Wt.Best_Baseline
+
+
+best_bs1105 <- best_bs1105 %>% 
+  rename(
+    S11 = Wt.Best_S11,
+    S5 = Wt.Best_S5,
+    Baseline = Wt.Best_Baseline
+  )
+best_bs1105 <- best_bs1105%>%pivot_longer(cols = c(Baseline,S11,S5))
+best_bs1105 <- best_bs1105 %>% 
+  rename(Strategy = name, POP = value
+  )
+best_bs1105$Strategy <- as.factor(best_bs1105$Strategy)
+best_bs1105$Strategy <- factor(best_bs1105$Strategy, levels = c('S5','S11','Baseline'))
+
+plot4 <- ggplot(best_bs1105, aes(fill=Strategy, y=POP, x= SpeciesGroup)) + 
+  geom_bar(position="stack", stat="identity")+
+  theme_bw()+
+  scale_fill_manual(values=c( "orange","deepskyblue4","beige"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")
+
+
+ggsave(paste0(figures, "/Barplot_S11105.png"), plot4, width = 180, height = 120, units = "mm")
+
+######################S11 + S14
+
+best_bs1114 <- best %>% select(contains(c("Group","Baseline","S11","S14")))
+best_bs1114$Wt.Best_S14 <- best_bs1114$Wt.Best_S14-best_bs1114$Wt.Best_S11
+best_bs1114$Wt.Best_S14[best_bs1114$Wt.Best_S14 <0] <- 0
+best_bs1114$Wt.Best_S11 <- best_bs1114$Wt.Best_S11-best_bs1114$Wt.Best_Baseline
+
+
+best_bs1114 <- best_bs1114 %>% 
+  rename(
+    S11 = Wt.Best_S11,
+    S14 = Wt.Best_S14,
+    Baseline = Wt.Best_Baseline
+  )
+best_bs1114 <- best_bs1114%>%pivot_longer(cols = c(Baseline,S11,S14))
+best_bs1114 <- best_bs1114 %>% 
+  rename(Strategy = name, POP = value
+  )
+best_bs1114$Strategy <- as.factor(best_bs1114$Strategy)
+best_bs1114$Strategy <- factor(best_bs1114$Strategy, levels = c('S14','S11','Baseline'))
+
+plot4 <- ggplot(best_bs1114, aes(fill=Strategy, y=POP, x= SpeciesGroup)) + 
+  geom_bar(position="stack", stat="identity")+
+  theme_bw()+
+  scale_fill_manual(values=c( "orange","deepskyblue4","beige"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")
+
+
+ggsave(paste0(figures, "/Barplot_S1114.png"), plot4, width = 180, height = 120, units = "mm")
+
+```
+
+
+POP step graph (general)
+
+```{r}
+
+# library(consOpt)
+library(ggrepel)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+
+cols <- c("40" = "brown2", "50" = "goldenrod1", "60" = "black", "70" = "darkmagenta")
+
+PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
+  
+  tmp <- summary.results
+  
+  tmp$total_cost <- (tmp$total_cost / 10^6) # rescale x-axis to millions
+  tmp$threshold <- round(tmp$threshold) # remove decimal points
+  
+  # Create plot object
+  this.plot <- ggplot(tmp, aes(
+    x = total_cost, 
+    y = number_of_species, 
+    group = threshold, 
+    # linetype = factor(threshold),
+    # shape = factor(threshold), 
+    label = ifelse(strategies=="Baseline"," ",strategies)
+  )
+  ) +
+    geom_step(aes(color = factor(threshold)), 
+      # size = 0.8,
+      # alpha = 0.6
+    ) +
+    geom_point(
+      aes(color = factor(threshold)),
+      size = 2
+      ,show.legend = FALSE
+    ) +
+    theme_cowplot() +
+    theme(legend.justification = c(1,0),
+          legend.position = c(0.95, 0.05),
+          legend.key.height = unit(0.6,"cm"),
+          legend.key.width = unit(1, "cm"),
+          legend.title = element_text(size = 12),
+          legend.text = element_text(size = 12),
+          plot.margin = margin(0.5, 1, 0.5, 0.5, "cm")
+          # legend.title.align=0.5
+    ) +scale_colour_manual(values = cols) +
+    scale_y_continuous(
+      # labels = function (x) floor(x), 
+      breaks = min(tmp$number_of_species):length(benefits.matrix),
+      limits = c(min(tmp$number_of_species), length(benefits.matrix))
+    ) +
+    labs(x = "Maximum budget (CAD millions)", 
+         y = "Number of ecological groups secured"
+         , color="Persistence\nthreshold (%)"
+         # , linetype = "Persistence\nthreshold (%)"
+         , shape = "Persistence\nthreshold (%)"
+    )
+  
+  if(draw.labels){
+    this.plot <- this.plot + 
+      geom_text_repel(size = 4
+                      , hjust = "left"
+                      # ,nudge_x = 0.5,
+                      # nudge_y = -0.15
+                      #,xlim = c(0, max(tmp$total_cost)+5),
+                      # ylim = c(-0.5, max(tmp$number_of_species)+0.5),
+                      # show.legend = FALSE
+                      # # , direction = "both"
+      )
+  }
+  
+  plot(this.plot)
+  this.plot
+}
+
+# Specify paths to subfolders within current working directory
+input <- here("analysis", "data", "raw") # where raw data files are located
+derived <- here("analysis", "data","Dec042023") # where compiled/summarized data are located
+results_pre <- here("analysis", "results","Dec042023") # where results of previous analysis are saved 
+results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
+figures <- here("analysis", "figures","Dec042023") # where plots should be saved
+results_ben <- here("analysis", "results","Benefitonly","Dec042023") # where results of benefits analysis should be saved
+figures_ben <- here("analysis", "figures","Benefitonly","Dec042023") # where plots should be saved
+
+
+###POP results 
+results.best <- read.csv(paste0(results, "/Complementarity_best.csv"), header = TRUE) 
+best <- read.csv(paste0(results, "/ExpPerform_best.csv"), header = TRUE) 
+
+##POP >60%
+results.best.60 <-results.best%>%filter(threshold==60)
+optcurve.best.60 <- PlotOptCurve(results.best.60, best, draw.labels = TRUE)
+ggsave(paste0(figures, "/Complementarity_best.60.png"), optcurve.best.60, width = 180, height = 120, units = "mm")
+
+##POP >50%
+results.best.50 <-results.best%>%filter(threshold==50)
+optcurve.best.50 <- PlotOptCurve(results.best.50, best, draw.labels = TRUE)
+ggsave(paste0(figures, "/Complementarity_best.50.png"), optcurve.best.50, width = 180, height = 120, units = "mm")
+
+##POP >50, 60%
+results.best.50.60 <-results.best%>%filter(threshold==50|threshold==60)
+optcurve.best.50.60 <- PlotOptCurve(results.best.50.60, best, draw.labels = TRUE)
+ggsave(paste0(figures, "/Complementarity_best.50.60.png"), optcurve.best.50.60, width = 180, height = 120, units = "mm")
+
+```
+
+
+[IGNORE] Step-graphs into bar-plots (POP)
+
+```{r}
+library(consOpt)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+library(RColorBrewer)
+
+# Specify paths to subfolders within current working directory
+input <- here("analysis", "data", "raw") # where raw data files are located
+derived <- here("analysis", "data","August092023") # where compiled/summarized data are located
+results_pre <- here("analysis", "results","August092023") # where results of previous analysis are saved 
+results <- here("analysis", "results","August092023") # where results of analysis should be saved
+figures <- here("analysis", "figures","August092023") # where plots should be saved
+results_ben <- here("analysis", "results","Benefitonly","August092023") # where results of benefits analysis should be saved
+figures_ben <- here("analysis", "figures","Benefitonly","August092023") # where plots should be saved
+
+
+###POP results 
+results.best <- read.csv(paste0(results, "/Complementarity_best.csv"), header = TRUE) 
+best <- read.csv(paste0(results, "/ExpPerform_best.csv"), header = TRUE) 
+
+##POP >60%
+results.best.60 <-results.best%>%filter(threshold==60)
+
+total_cost = c(0,0,130,130,152,152,267,267,400,400,610,610,2253,2253,2677,2677,3000)
+number_of_species = c(1,1,2,2,3,3,5,5,6,6,7,7,10,10,12,12,16)
+strategies = factor(c("Baseline","Baseline","S5","S5","S2","S2","S14","S14","S5+S14","S5+S14",
+               "S7+S14","S7+S14","S11","S11","S15","S15","S15"), levels=c("Baseline","S5","S2","S14","S5+S14","S7+S14","S11","S15"))
+
+
+df = data.frame(total_cost, number_of_species, strategies)
+
+hist_60 <- ggplot(df, aes(x = total_cost, y = number_of_species, fill = strategies)) +
+  geom_step()+
+  geom_rect(aes(xmin = total_cost, xmax = lead(total_cost), 
+                ymin = 0, ymax = number_of_species))+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x="Maximum budget (million CAD)", y = "Number of ecological groups secured", fill="Strategy")+
+  scale_fill_manual(values=c("grey","#FDE725FF","#73D055FF","cadetblue", "#1F968BFF","#39568CFF","#453781FF","#440154FF"))+
+  scale_x_continuous(breaks = seq(0, 3000, by = 500), expand = c(0, 0))+
+  scale_y_continuous(breaks = seq(0, 16, by = 1), expand = c(0, 0))
+
+hist_60
+
+ggsave(paste0(figures, "/Histogram_60.png"), hist_60, width = 180, height = 120, units = "mm")
+
+##POP >50%
+results.best.50 <-results.best%>%filter(threshold==50)
+total_cost = c(0,0,20,20,39,39,170,170,2700,2700,3000)
+number_of_species = c(3,3,9,9,13,13,14,14,15,15,16)
+strategies = factor(c("Baseline","Baseline","S1","S1","S3","S3","S3+S5","S3+S5","S15","S15","S15"), levels=c("Baseline","S1","S3","S3+S5","S15"))
+
+
+df = data.frame(total_cost, number_of_species, strategies)
+
+hist_50 <- ggplot(df, aes(x = total_cost, y = number_of_species, fill = strategies)) +
+  geom_step()+
+  geom_rect(aes(xmin = total_cost, xmax = lead(total_cost), 
+                ymin = 0, ymax = number_of_species))+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x="Maximum budget (million CAD)", y = "Number of ecological groups secured", fill="Strategy")+
+  scale_fill_manual(values=c("grey","#FDE725FF","#73D055FF","#39568CFF","#440154FF"))+
+  scale_x_continuous(breaks = seq(0, 3000, by = 500), expand = c(0, 0))+
+  scale_y_continuous(breaks = seq(0, 16, by = 1), expand = c(0, 0))
+
+hist_50
+
+ggsave(paste0(figures, "/Histogram_50.png"), hist_50, width = 180, height = 120, units = "mm")
+
+
+
+```
+
+
+
+[IGNORE] Step-graphs into bar-plots (Benefits)
+
+```{r}
+library(consOpt)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+library(RColorBrewer)
+
+# Specify paths to subfolders within current working directory
+input <- here("analysis", "data", "raw") # where raw data files are located
+derived <- here("analysis", "data","August092023") # where compiled/summarized data are located
+results_pre <- here("analysis", "results","August092023") # where results of previous analysis are saved 
+results <- here("analysis", "results","August092023") # where results of analysis should be saved
+figures <- here("analysis", "figures","August092023") # where plots should be saved
+results_ben <- here("analysis", "results","Benefitonly","August092023") # where results of benefits analysis should be saved
+figures_ben <- here("analysis", "figures","Benefitonly","August092023") # where plots should be saved
+
+
+##read in results 
+results.best <- read.csv(paste0(results_ben, "/Complementarity_best_Benefitsonly_10_15.csv"), header = TRUE) 
+best <- read.csv(paste0(results_ben, "/ExpPerform_best_Benefitsonly.csv"), header = TRUE) 
+
+##Benefits >15%
+results.best.15 <-results.best%>%filter(threshold==15)
+
+total_cost = c(0,0,130,130,266,266,420,420,2250,2250,2253,2253,2677,2677,3000)
+number_of_species = c(0,0,1,1,2,2,3,3,4,4,6,6,11,11,16)
+strategies = factor(c("Baseline","Baseline","S5","S5","S14","S14","S5+S14","S5+S14",
+               "S5+S10","S5+S10","S11","S11","S15","S15","S15"), levels=c("Baseline","S5","S14","S5+S14","S5+S10","S11","S15"))
+
+
+df = data.frame(total_cost, number_of_species, strategies)
+
+hist_15 <- ggplot(df, aes(x = total_cost, y = number_of_species, fill = strategies)) +
+  geom_step()+
+  geom_rect(aes(xmin = total_cost, xmax = lead(total_cost), 
+                ymin = 0, ymax = number_of_species))+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  labs(x="Maximum budget (million CAD)", y = "Number of ecological groups benefitting", fill="Strategy")+
+  scale_fill_manual(values=c("grey","#FDE725FF","#73D055FF", "#1F968BFF","blue","#453781FF","#440154FF"))+
+  scale_x_continuous(breaks = seq(0, 3000, by = 500), expand = c(0, 0))+
+  scale_y_continuous(breaks = seq(0, 16, by = 1), expand = c(0, 0))
+
+hist_15
+
+ggsave(paste0(figures, "/Histogram_15_benefit.png"), hist_15, width = 180, height = 120, units = "mm")
+```
+
+
+
+Uncertainty results - high and low estimates 
+```{r}
+library(consOpt)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(viridis)
+
+cols <- c("40" = "brown2", "50" = "goldenrod1", "60" = "darkolivegreen3", "70" = "darkmagenta")
+
+
+# Specify paths to subfolders within current working directory
+input <- here("analysis", "data", "raw") # where raw data files are located
+derived <- here("analysis", "data","August092023") # where compiled/summarized data are located
+results_pre <- here("analysis", "results","August092023") # where results of previous analysis are saved 
+results <- here("analysis", "results","August092023") # where results of analysis should be saved
+figures <- here("analysis", "figures","August092023") # where plots should be saved
+
+
+###########NEED a specific one for LOW uncertainty 
+PlotOptCurve_uncertainty <- function(summary.results, benefits.matrix, draw.labels=TRUE){
+  
+  tmp <- summary.results
+  
+  tmp$total_cost <- (tmp$total_cost / 10^6) # rescale x-axis to millions
+  tmp$threshold <- round(tmp$threshold) # remove decimal points
+  
+  # Create plot object
+  this.plot <- ggplot(tmp, aes(
+    x = total_cost, 
+    y = number_of_species, 
+    group = threshold, 
+    # linetype = factor(threshold),
+    # shape = factor(threshold), 
+    label = ifelse(strategies=="Baseline"," ",strategies)
+  )
+  ) +
+    geom_step(aes(color = factor(threshold)), 
+      # size = 0.8,
+      # alpha = 0.6
+    ) +
+    geom_point(
+      aes(color = factor(threshold)),
+      size = 2
+      ,show.legend = FALSE
+    ) +
+    theme_cowplot() +
+    theme(legend.justification = c(1,0),
+          legend.position = c(0.90, 0.35),
+          legend.key.height = unit(0.6,"cm"),
+          legend.key.width = unit(1, "cm"),
+          legend.title = element_text(size = 12),
+          legend.text = element_text(size = 12),
+          plot.margin = margin(0.5, 1, 0.5, 0.5, "cm")
+          # legend.title.align=0.5
+    ) +scale_colour_manual(values = cols) +
+    scale_y_continuous(
+      # labels = function (x) floor(x), 
+      breaks = min(tmp$number_of_species):length(benefits.matrix),
+      limits = c(min(tmp$number_of_species), length(benefits.matrix))
+    ) +
+    labs(x = "Maximum budget (CAD millions)", 
+         y = "Number of ecological groups secured"
+         , color="Persistence\nthreshold (%)"
+         # , linetype = "Persistence\nthreshold (%)"
+         , shape = "Persistence\nthreshold (%)"
+    )
+  
+  if(draw.labels){
+    this.plot <- this.plot + 
+      geom_text_repel(size = 4
+                      , hjust = "right"
+                      ,nudge_x = 0.5
+                      ,nudge_y = -0.15
+                      #,xlim = c(0, max(tmp$total_cost)+5),
+                      # ylim = c(-0.5, max(tmp$number_of_species)+0.5),
+                      # show.legend = FALSE
+                      # # , direction = "both"
+      )
+  }
+  
+  plot(this.plot)
+  this.plot
+}
+
+
+###LOW POP results 
+results.low <- read.csv(paste0(results, "/Complementarity_low.csv"), header = TRUE) 
+low <- read.csv(paste0(results, "/ExpPerform_low.csv"), header = TRUE) 
+optcurve.low <- PlotOptCurve_uncertainty(results.low, low, draw.labels = TRUE)
+ggsave(paste0(figures, "/Complementarity_low.png"), optcurve.low, width = 180, height = 120, units = "mm")
+
+
+###########NEED the OG one for high uncertainty
+
+PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
+  
+  tmp <- summary.results
+  
+  tmp$total_cost <- (tmp$total_cost / 10^6) # rescale x-axis to millions
+  tmp$threshold <- round(tmp$threshold) # remove decimal points
+  
+  # Create plot object
+  this.plot <- ggplot(tmp, aes(
+    x = total_cost, 
+    y = number_of_species, 
+    group = threshold, 
+    # linetype = factor(threshold),
+    # shape = factor(threshold), 
+    label = ifelse(strategies=="Baseline"," ",strategies)
+  )
+  ) +
+    geom_step(aes(color = factor(threshold)), 
+      # size = 0.8,
+      # alpha = 0.6
+    ) +
+    geom_point(
+      aes(color = factor(threshold)),
+      size = 2
+      ,show.legend = FALSE
+    ) +
+    theme_cowplot() +
+    theme(legend.justification = c(1,0),
+          legend.position = c(0.95, 0.05),
+          legend.key.height = unit(0.6,"cm"),
+          legend.key.width = unit(1, "cm"),
+          legend.title = element_text(size = 12),
+          legend.text = element_text(size = 12),
+          plot.margin = margin(0.5, 1, 0.5, 0.5, "cm")
+          # legend.title.align=0.5
+    ) +scale_colour_manual(values = cols) +
+    scale_y_continuous(
+      # labels = function (x) floor(x), 
+      breaks = min(tmp$number_of_species):length(benefits.matrix),
+      limits = c(min(tmp$number_of_species), length(benefits.matrix))
+    ) +
+    labs(x = "Maximum budget (CAD millions)", 
+         y = "Number of ecological groups secured"
+         , color="Persistence\nthreshold (%)"
+         # , linetype = "Persistence\nthreshold (%)"
+         , shape = "Persistence\nthreshold (%)"
+    )
+  
+  if(draw.labels){
+    this.plot <- this.plot + 
+      geom_text_repel(size = 4
+                      , hjust = "left"
+                      # ,nudge_x = 0.5,
+                      # nudge_y = -0.15
+                      #,xlim = c(0, max(tmp$total_cost)+5),
+                      # ylim = c(-0.5, max(tmp$number_of_species)+0.5),
+                      # show.legend = FALSE
+                      # # , direction = "both"
+      )
+  }
+  
+  plot(this.plot)
+  this.plot
+}
+
+###high POP results 
+results.high <- read.csv(paste0(results, "/Complementarity_high.csv"), header = TRUE) 
+high <- read.csv(paste0(results, "/ExpPerform_high.csv"), header = TRUE) 
+optcurve.high <- PlotOptCurve(results.high, high, draw.labels = TRUE)
+ggsave(paste0(figures, "/Complementarity_high.png"), optcurve.high, width = 180, height = 120, units = "mm")
+
+
+
+```
+
+
+Lattronel - figures
+```{r}
+library(tidyverse)
+library(cowplot)
+library(here)
+library(dplyr)
+library(ggplot2)
+
+figures <- here("analysis", "figures","August092023") # where plots should be saved
+results <- here("analysis", "results","August092023") # where results of analysis should be saved
+exp.perf <- read.csv(paste0(results, "/ExpPerform_all.csv"), header = TRUE) 
+best <- exp.perf %>% select(contains(c("Group","Best")))
+
+best$Ecological.Group<-gsub("species","",as.character(best$Ecological.Group))
+best$Ecological.Group<-gsub("Artificial structure dependent","Structure dependent",as.character(best$Ecological.Group))
+best$Ecological.Group<-gsub("Naturalized open habitat","Nat.open habitat",as.character(best$Ecological.Group))
+best <- best %>% rename(SpeciesGroup = Ecological.Group)
+
+
+######################Baseline
+best_bs <- best %>% select(contains(c("Group","Baseline")))
+best_bs <- best_bs %>% rename(POP = Wt.Best_Baseline)
+
+plot1 <- ggplot(best_bs,aes(y=POP, x= SpeciesGroup,fill=Strategy)) + 
+  geom_bar(stat="identity", aes(fill="Baseline"))+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")+
+  scale_fill_manual(values="beige")+
+  scale_y_continuous(breaks = seq(0, 80, by=20), limits=c(0,80))
+
+ggsave(paste0(figures, "/Barplot_baseline.png"), plot1, width = 180, height = 120, units = "mm")
+
+######################S11 
+best_bs11 <- best %>% select(contains(c("Group","Baseline","S11")))
+best_bs11$Wt.Best_S11 <- best_bs11$Wt.Best_S11-best_bs11$Wt.Best_Baseline
+best_bs11 <- best_bs11 %>% rename(S11 = Wt.Best_S11,Baseline = Wt.Best_Baseline )
+best_bs11 <- best_bs11%>%pivot_longer(cols = c(Baseline,S11))
+best_bs11 <- best_bs11 %>% rename(Strategy = name, POP = value)
+best_bs11$Strategy <- as.factor(best_bs11$Strategy)
+
+best_bs11$Strategy <- factor(best_bs11$Strategy, levels = c('S11','Baseline'))
+plot2 <- ggplot(best_bs11, aes(fill=Strategy, y=POP, x= SpeciesGroup)) + 
+  geom_bar(position="stack", stat="identity")+
+  theme_bw()+
+  scale_fill_manual(values=c( "deepskyblue4","beige"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")+
+  scale_y_continuous(breaks = seq(0, 80, by=20), limits=c(0,80))
+
+ggsave(paste0(figures, "/Barplot_S11.png"), plot2, width = 180, height = 120, units = "mm")
+
+
+#####################S15
+best_bs15 <- best %>% select(contains(c("Group","Baseline","S15")))
+best_bs15$Wt.Best_S15 <- best_bs15$Wt.Best_S15-best_bs15$Wt.Best_Baseline
+best_bs15 <- best_bs15 %>% rename(S15 = Wt.Best_S15,Baseline = Wt.Best_Baseline )
+best_bs15 <- best_bs15%>%pivot_longer(cols = c(Baseline,S15))
+best_bs15 <- best_bs15 %>% rename(Strategy = name, POP = value)
+best_bs15$Strategy <- as.factor(best_bs15$Strategy)
+
+best_bs15$Strategy <- factor(best_bs15$Strategy, levels = c('S15','Baseline'))
+
+plot3 <- ggplot(best_bs15, aes(fill=Strategy, y=POP, x= SpeciesGroup)) + 
+  geom_bar(position="stack", stat="identity")+
+  theme_bw()+
+  scale_fill_manual(values=c( "darkgreen","beige"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")+
+  scale_y_continuous(breaks = seq(0, 80, by=20), limits=c(0,80))
+
+ggsave(paste0(figures, "/Barplot_S15.png"), plot3, width = 180, height = 120, units = "mm")
+
+
+########################### How much is S15 better than S11? 
+
+best_bs115 <- best %>% select(contains(c("Group","Baseline","S11","S15")))
+best_bs115$Wt.Best_S15 <- best_bs115$Wt.Best_S15-best_bs115$Wt.Best_S11 
+best_bs115$Wt.Best_S11 <- best_bs115$Wt.Best_S11-best_bs115$Wt.Best_Baseline
+best_bs115 <- best_bs115 %>% 
+  rename(
+    S11 = Wt.Best_S11,
+    S15 = Wt.Best_S15,
+    Baseline = Wt.Best_Baseline
+  )
+best_bs115 <- best_bs115%>%pivot_longer(cols = c(Baseline,S11,S15))
+best_bs115 <- best_bs115 %>% 
+  rename(Strategy = name, POP = value
+  )
+best_bs115$Strategy <- as.factor(best_bs115$Strategy)
+best_bs115$Strategy <- factor(best_bs115$Strategy, levels = c('S15','S11','Baseline'))
+
+plot4 <- ggplot(best_bs115, aes(fill=Strategy, y=POP,  x= SpeciesGroup)) + 
+  geom_bar(position="stack", stat="identity")+
+  theme_bw()+
+  scale_fill_manual(values=c( "darkgreen","deepskyblue4","beige"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  geom_hline(yintercept = 60)+
+  labs(x="Species Group", y = "Probability of persistence (%)")+
+  scale_y_continuous(breaks = seq(0, 80, by=20), limits=c(0,80))
+
+ggsave(paste0(figures, "/Barplot_S1115.png"), plot4, width = 180, height = 120, units = "mm")
+```
