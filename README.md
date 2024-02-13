@@ -1,5 +1,5 @@
-#Priority Threat Management 
-##Southern Ontario
+# Priority Threat Management 
+## Southern Ontario
 
 This code and data are for the Priority Threat Management project for Southern Ontario. 
 
