@@ -1,13 +1,13 @@
 ---
 title: "PTM_SouthernON_AI"
 author: "AranyaIyer"
-date: "2023-03-10" ####LAST UPDATED  -> December 4th, 2023 (3% PV, rounded benefits)
+date: "2023-03-10" ####LAST UPDATED  -> 2025-07-09 by AC: updated folder references; added complementarity analysis for Benefits data
 output: html_document
 ---
 
-This is the document to be used for PTM Southern Ontario analysis. It has all the seperate codes in one Markdown file to streamline for efficiency. Only the final codes should be put and updated here. 
+This is the document to be used for PTM Southern Ontario analysis. It has all the separate codes in one Markdown file to streamline for efficiency. Only the final codes should be put and updated here. 
 
-Scripts are originally written by Abbey C. and are then modified by Aranya I. The original scripts can be pulled from Abbey's github - https://github.com/aecamaclang/PTM_3-point-est
+Scripts are originally written by Abbey C. and are then modified by Aranya I. The original scripts can be pulled from https://github.com/aecamaclang/PTM_3-point-est
 
 Step 1: Import the data 
 
@@ -21,12 +21,11 @@ library(tidyverse)
 library(naniar)
 
 # Specify paths to subfolders within current working directory
-input <- here("analysis", "data", "raw", "benefits","Dec042023") # where .csv files of benefit estimates are saved
-derived <- here("analysis", "data","Dec042023") # where compiled data tables should be saved
-results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
+input <- here("data", "raw") # where input data files are stored (benefit estimates, cost & feasibility table, etc.)
+derived <- here("data") # where compiled data tables should be saved
+results <- here("results") # where results of analysis should be saved
 
-
-#' Read in the individual tables of expert estimates and combine.  
+#' Read in the individual tables of expert estimates (there should be one .csv file per expert) and combine.  
 #' NOTE to maintain confidentiality, only sample tables are provided
 nstrat <- 15 # number of strategies (including combinations, but excluding baseline)
 ngroups <- 16 # number of ecological groups
@@ -38,10 +37,10 @@ numrows <- (ngroups+1)*3 # number of rows to read in (3 rows [Best, Low, High] p
 skiplines <- 20 # number of header rows to skip 
 
 # Combine .csv files into single data frame
+# NOTE that these files are not included in the archive to maintain expert confidentiality; instead an empty template file is provided
 
 # read in the files 
-
-files <- list.files(path = paste(input, "/", sep=""),
+files <- list.files(path = paste(input, "/benefits/", sep=""),
                     pattern = "*.csv", 
                     full.names = T)
 listcsv <- lapply(files, 
@@ -85,8 +84,9 @@ data <- rawdata %>%
   filter(!grepl("example", Ecological.Group)) # remove 'example' rows 
 
 # Standardize column/row names for the Southern Ontario PTM project 
+# Must match the names in SpecialCases.csv and EcolGroupsList.csv
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Alvar/Rock barren/Shield") == 1)] <- "Alvar species"
-data$Ecological.Group[which(str_detect(data$Ecological.Group, "Artificial/Man-made Structures") == 1)] <- "Artificial structure dependent species"
+data$Ecological.Group[which(str_detect(data$Ecological.Group, "Artificial/Man-made Structures") == 1)] <- "Artificial structure dependent spp"
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Bats") == 1)] <- "Bats"
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Lake") == 1)] <- "Ciscos"
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Mussels") == 1)] <- "Mussels"
@@ -97,7 +97,7 @@ data$Ecological.Group[which(str_detect(data$Ecological.Group, "Snakes and Lizard
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Turtles") == 1)] <- "Turtles"
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Wetland") == 1)] <- "Wetland species"
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Working Landscapes") == 1)] <- "Working landscapes species"
-data$Ecological.Group[which(str_detect(data$Ecological.Group, "Naturalized Open habitats") == 1)] <- "Naturalized open habitat species"
+data$Ecological.Group[which(str_detect(data$Ecological.Group, "Naturalized Open habitats") == 1)] <- "Naturalized open habitat spp"
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Mixed Forest") == 1)] <- "Mixed"
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Forest") == 1)] <- "Forest species"
 data$Ecological.Group[which(str_detect(data$Ecological.Group, "Mixed") == 1)] <- "Mixed forest species"
@@ -113,13 +113,13 @@ clean <- data %>%
   replace_with_na_all(condition = ~.x == "")
 
 # Replace B's with value for baseline estimates from same row 
-
 for (i in 1:(numexp*ngroups*3)) {
-  temp <- which(data[i,] == "B" | data[i,] == "b") #wherever people have put B or B, replace with the value in column 4 of that same row
+  temp <- which(data[i,] == "B" | data[i,] == "b")
   clean[i,temp] <- data[i,4]
 }
 
-write.csv(clean, file = paste(derived, "/Estimates_clean.csv", sep = ""), row.names = FALSE) ##Currently have 624 obs for 19 variables (16 species groups * 3 estimates * 13 experts = 624)
+write.csv(clean, file = paste(derived, "/Estimates_clean.csv", sep = ""), row.names = FALSE) # Currently have 624 obs for 19 variables (16 species groups * 3 estimates * 13 experts = 624)
+# file excluded from archive
 
 #' Convert to tidy version
 long <-
@@ -130,7 +130,7 @@ long <-
   )
 
 write_csv(long, file = paste(derived, "/Estimates_tidy.csv", sep = "")) #Should have 9984 obs for 5 variables (16 species groups * 3 estimates * 13 experts = 624*16 (including baseline)=9984)
-
+# file excluded from archive
 
 #' Convert to wide format
 
@@ -153,18 +153,18 @@ wide <- wide[, c("Expert", "Ecological.Group", est.levels)] # Reorder columns by
 wide <- with(wide, wide[order(Expert, Ecological.Group),]) # Reorder rows by Ecological Group
 
 write_csv(wide, file = paste(derived, "/Estimates_wide.csv", sep = "")) #Should have 131 obs for 50 variables
+# file excluded from archive
 
 #' Summarize the number of expert estimates
 temp <- subset(long, Estimate == "Best")
 strat.levels <- unique(temp$Strategy)
 temp$Strategy <- factor(temp$Strategy,levels = strat.levels)
-stgy.count <- table(temp$Ecological.Group, temp$Strategy)
-stgy.count #should roughly align with your CostFeasCOUNTS_ON
+stgy.count <- table(temp$Ecological.Group, temp$Strategy) #should roughly align with your CostFeasCOUNTS_ON
 
 write.csv(stgy.count, file = paste(results, "/estimatecounts.csv", sep = ""))
 ```
 
-Step 1A: Plot the imported data [ONLY RUN IF YOU ARE GIVING BACK TO EXPERTS FOR REVIEW]
+Step 1A: Plot the imported data [ONLY NEEDED IF CREATING SUMMARY PLOTS FOR EXPERT REVIEW]
 
 Based on *Boxplot_script.R* from Fraser River Estuary PTM project 
 This script creates two plots for each Ecological Group:  
@@ -178,9 +178,10 @@ library(gridExtra)
 library(here)
 
 # Specify paths to subfolders within current working (R project) directory
-derived <- here("analysis", "data") # where compiled data tables are saved
-results <- here("analysis", "results") # where results of analysis should be saved
-figures <- here("analysis", "figures") # where plots should be saved -> AI: Original project did not have this, had to add in the folder for code to run
+derived <- here("data") # where compiled data tables are saved
+results <- here("results") # where results of analysis should be saved
+figures <- here("figures") # where plots should be saved 
+# NOTE plots showing individual expert estimates have been excluded from the archived version
 
 # Read in data
 long <- read_csv(paste(derived,"/Estimates_tidy.csv", sep=""))
@@ -214,7 +215,7 @@ for (j in seq_along(expcode)) {
       ) + 
       # geom_violin() +  # option to add a violin plot around the boxplot - if doing so, reduce boxplot width in next line
       geom_boxplot(width=0.4) + 
-      geom_point(data = subset(temp.grpdata, Expert == expcode[j]), # plot expert [j]'s estimates as blue points 
+      geom_point(data = subset(temp.grpdata, Expert == expcode[j]), # plot expert [j]'s estimates as blue points
                  aes(x = Estimate, y = Value),
                  color = 'blue'
       ) + # include the geom_point option only if you want to highlight individual expert responses
@@ -285,8 +286,8 @@ for (j in seq_along(expcode)) {
     
     temp.plot2 <-
       ggplot(temp.expdata, aes(x = Expert, # using the data Ecological group, plot Experts on X-axis
-                               y = Best, # and corresponding standardized estimates on y-axis
-                               color = expi, # use this only if highlighting individual expert responses
+                               y = Best # and corresponding standardized estimates on y-axis
+                               , color = expi, # use this only if highlighting individual expert responses
       )
       ) +  
       geom_pointrange(aes(ymin = Low, ymax = High)) +
@@ -297,7 +298,8 @@ for (j in seq_along(expcode)) {
                                                         r = 10,
                                                         b = 0,
                                                         l = 0)), # adjust space between y-axis numbers and y-axis label
-            axis.text.x = element_text(size=10),
+            axis.text.x = element_text(size=10), 
+            # axis.text.x = element_blank(), # use this instead to remove x-axis labels of expert code (for archiving)
             legend.justification=c(1,0), legend.position=c(0.98,-0.05), # re-positions legend box
             plot.caption = element_text(size = 10, hjust = 0)
       ) +  
@@ -327,8 +329,6 @@ for (j in seq_along(expcode)) {
   )
   
 }
-
-print(temp.plot2)
 ```
 
 Step 2: Aggregate/average the estimates across the experts 
@@ -340,18 +340,19 @@ c) calculates expected performance (probability of persistence) under each strat
    
 Based on first part of Step 2 section of 1_Cost-Effectiveness.R code from the Fraser River Estuary PTM project.  
 This script uses **Estimates_wide.csv** from *import.R*.
-If some of the expert estimates for a given ecological group are based on only a subset of species in that group, this estimate need to be weighted accordingly. To do this, you need:  
+If some of the expert estimates for a given ecological group are based on only a subset of species in that group, this estimate need to be weighted accordingly. To do this, you need to create:  
 1) a .csv file *EcolGroupsList.csv* with ecological groups in columns and the list of species for each group in rows, and   
-2) a .csv file *SpecialCases.csv* listing only the estimates (from which expert, and for which ecol group and strategy) that require different weighting, along with the number of species in that group that the estimate is based on.  
+2) a .csv file *SpecialCases.csv* listing only the estimates (from which expert, and for which ecol group and strategy) that require different weighting, along with the number of species in that group that the estimate is based on. 
+Names of ecological groups in both files must match the names used in the compiled benefit estimates tables. Store both files in the ~/data/raw folder.
 
 ```{r}
 library(tidyverse)
 library(here)
 
 # Specify paths to subfolders within current working directory
-input <- here("analysis", "data", "raw") # where unchanging data are 
-derived <- here("analysis", "data","Dec042023") # where compiled data tables should be saved
-results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
+input <- here("data", "raw") # where unchanging data are 
+derived <- here("data") # where compiled data tables should be saved
+results <- here("results") # where results of analysis should be saved
 
 # Specify how estimates should be aggregated - this should be based on the
 # experts' comments, i.e., whether all species in the ecological group were
@@ -375,15 +376,13 @@ baseline <- wide[3:5]
 strategies <- wide[6:ncol(wide)]  
 benefit <- strategies - as.matrix(baseline) #only the benefit of the strategy, nothing else 
 
-benefit[benefit < 0] <- 0 # if there are any logical errors that result in negative values #AI: Quick check revealed no problem in this 
+benefit[benefit < 0] <- 0 # if there are any logical errors that result in negative values 
 
 # Add row labels back to the tables
 benefit <- cbind(wide[,1:2], benefit) 
 baseline <- cbind(wide[,1:2], baseline)
 
 #' Aggregate (weighted average) benefit and the baseline estimates for each ecol group x strategy
-
-###ONLY RUNNING when loop = 1, for whole loop - see bottom. 
 # Re-organize benefits table to make it easier to weight estimates
 benefit.long <- gather(benefit, 
                        key = Est.type, 
@@ -409,7 +408,7 @@ numspp <- apply(grplist, MARGIN = 2, FUN = function(x) length(x[!is.na(x)]) )
 grpwts <- data.frame(Ecological.Group=names(numspp), numspp) 
 grpwts$Ecological.Group <- factor(grpwts$Ecological.Group, levels = unique(names(numspp)))
 
-spcases <- read_csv(paste0(derived, "/SpecialCases.csv")) 
+spcases <- read_csv(paste0(input, "/SpecialCases.csv")) # NOTE this dataset is manually compiled from the individual expert tables
 spcases$Strategy <- factor(spcases$Strategy, levels = levels(benefit.wide$Strategy))
 spcases$Expert <- factor(spcases$Expert, levels = levels(benefit.wide$Expert))
 spcases$`Ecological Group`<- factor(spcases$`Ecological Group`, levels = levels(benefit.wide$Ecological.Group))
@@ -435,7 +434,7 @@ benefit.joined <- benefit.joined %>%
          Wt.Low = Low*Wts, 
          Wt.High = High*Wts)
 
-# Aggregate (sum) the weighted estimates and re-organize table for calculating performance (ie.,average benefit for species group across all experts)
+# Aggregate (sum) the weighted estimates and re-organize table for calculating performance (i.e.,average benefit for species group across all experts)
 benefit.avg <- aggregate(benefit.joined[,11:13], 
                          by = list(Ecological.Group = benefit.joined$Ecological.Group, 
                                    Strategy = benefit.joined$Strategy), 
@@ -454,7 +453,7 @@ benefit.avg <- benefit.avg %>%
 
 benefit.avg$Estimate <- as_factor(benefit.avg$Estimate)
 
-benefit.avg <- benefit.avg %>% #NOTE: You are comparing strategy best with baseline best, strategy high with baseline high, and strategy low with baseline low (which is why values for high might be lower than values for best)
+benefit.avg <- benefit.avg %>%
   spread(., Estimate, Wt.Avg)
 
 # Prepare the baseline estimates table
@@ -512,7 +511,7 @@ write_csv(grpwtd_ben, paste0(results, "/Estimates_avg_benefits_groupwtd.csv"))
 ```
 
 
-Step 2A: Plot the aggregated/averaged values [ONLY RUN IF YOU ARE GIVING BACK TO EXPERTS FOR REVIEW]
+Step 2A: Plot the aggregated/averaged values [ONLY NEEDED IF CREATING SUMMARY PLOTS FOR EXPERT REVIEW, OR IF DESIRED FOR FINAL REPORT/MANUSCRIPT]
 
 Creates pointrange plots of the aggregated estimates of probability of persistence (y-axis) for each strategy (x-axis) and for each ecological group (subplots).
 
@@ -526,8 +525,8 @@ library(here)
 library(tidyr)
 
 # Specify paths to subfolders within current working directory
-results <- here("analysis", "results","June282023") # where results of analysis should be saved
-figures <- here("analysis", "figures","June282023") # where plots should be saved
+results <- here("results") # where results of analysis should be saved
+figures <- here("figures") # where plots should be saved
 
 # Read in probability of persistence data
 weighted <- 0 # (1) if values are weighted by feasibility, (0) if not #AI: for the first round of elicitation, you have to ensure that it is not weighted by feasibility 
@@ -581,7 +580,9 @@ temp.plot2 <-
   theme(plot.margin = unit(c(1.5, 1, 1.5, 1), "cm"), # top, right, bottom and left margins around the plot area
         panel.spacing = unit(1, "lines"), # adjust margins and between panels of the plot (spacing of 1)
         axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)), # adjust space between y-axis numbers and y-axis label
-        axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+        axis.text.x = element_text(size = 8, angle = 65
+                                   , hjust = 1, vjust = 1)
+        ,
         plot.caption = element_text(size =10, hjust = 0)
   ) +  facet_wrap( ~ Ecological.Group, nrow = 4, ncol = 4) +  # create a separate panel for each ecological group
   theme(strip.text = element_text(size=8))+
@@ -589,17 +590,23 @@ temp.plot2 <-
   labs(x = "Strategies",
        y = "Probability of persistence (%)"
        # , title = "Mean estimates" 
-       , caption = str_wrap("Figure 1. Estimated probability of persistence of each ecological group under each of the 
+       , caption = str_wrap("Figure 1. Estimated probability of persistence of each ecological group under each of the
        management strategies (Best Guess = solid black dots, Lowest and- Highest estimates = black vertical lines),
-       compared to the probability under the Baseline scenario (blue horizontal lines: Best Guess = solid lines, 
-       Lowest and Highest Estimates = dashed lines). Values are based on expert estimates averaged over the 
-       number of experts that provided estimates for the strategy and ecological group.", 100)) +  ylim(0, 100) 
+       compared to the probability under the Baseline scenario (blue horizontal lines: Best Guess = solid lines,
+       Lowest and Highest Estimates = dashed lines). Values are based on expert estimates averaged over the
+       number of experts that provided estimates for the strategy and ecological group.", 100)
+       ) +  ylim(0, 100) 
 
 # Save plot as pdf file
 ggsave(filename=paste0(figures, est.file, "_plot.pdf"), 
        temp.plot2, 
        width = 8.5, height = 11, 
        units = "in")
+
+# ggsave(filename=paste0(figures, est.file, "_plot.png"), 
+#        temp.plot2, 
+#        width = 8.5, height = 11, 
+#        units = "in")
 
 print(temp.plot2)
 ```
@@ -619,11 +626,12 @@ library(here)
 a <- 10^6
 
 # Specify paths to subfolders within current working directory
-results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
+input <- here("data", "raw") 
+results <- here("results") # where results of analysis should be saved
 
 # Read in and prep data
-ben.grpwtd <- read.csv(paste0(results, "/Estimates_avg_benefits_groupwtd.csv")) #values can be into thousands here, because it is benefits multiplied by the number of species in the group 
-costfeas <- read.csv(paste0(results, "/CostFeas.csv"))
+ben.grpwtd <- read.csv(paste0(results, "/Estimates_avg_benefits_groupwtd.csv")) 
+costfeas <- read.csv(paste0(input, "/CostFeas.csv"))
 costfeas <- costfeas[-1,] # Remove baseline values
 costfeas$Strategy <- as_factor(costfeas$Strategy)
 names(costfeas)[2] <- "Cost" # col 2 is the cost with 3% PV discount rate 
@@ -649,14 +657,14 @@ bestben.sum <- data.frame(rowSums(bestben)) %>% #takes the sum of all the rows (
 saveRDS(bestben.sum, paste0(results, "/Benefits_total.rds")) 
   
 #' ### Calculate cost-effectiveness and rank strategies
-#' CE = (Benefit * Feasibility)/Cost
+#' Cost-effectiveness = (Benefit * Feasibility)/Cost
 CE_table <- full_join(bestben.sum, costfeas, by="Strategy")%>%
-  mutate(Exp.Benefit = Benefit * Avg.Feas) %>% # weigh benefits by feasibility
-  mutate(CE = (Exp.Benefit/Cost)*a) %>% # divide by cost then scale
-  select(c("Strategy", "Benefit", "Cost", "Avg.Feas", "Exp.Benefit", "CE")) %>% #using average benefits and 3% discount 
-  mutate(CE_rank = rank(-CE), #highest cost-benefit effectiveness GIVEN feasability 
-         ExpBenefit_rank = rank(-Exp.Benefit), #highest benefit GIVEN feasability 
-         Cost_rank = rank(Cost)) #based purely of lowest cost 
+  mutate(Exp.Benefit = Benefit * Avg.Feas) %>% # weight benefits by feasibility
+  mutate(CE = (Exp.Benefit/Cost)*a) %>% # re-scale using scaling factor
+  select(c("Strategy", "Benefit", "Cost", "Avg.Feas", "Exp.Benefit", "CE")) %>% 
+  mutate(CE_rank = rank(-CE), 
+         ExpBenefit_rank = rank(-Exp.Benefit),  
+         Cost_rank = rank(Cost)) 
 
 write.csv(CE_table, paste0(results, "/CE_Scores.csv"), row.names = FALSE)
 
@@ -675,13 +683,14 @@ library(tidyverse)
 library(here)
 
 # Specify paths to subfolders within current working directory
-results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
+input <- here("data", "raw")
+results <- here("results") # where results of analysis should be saved
 
 # Read in and prep data
 benefit <- read.csv(paste0(results, "/Estimates_avg_benefits.csv"))
 baseline <- read.csv(paste0(results, "/Estimates_avg_baseline.csv"))
 
-costfeas <- read.csv(paste0(results, "/CostFeas.csv"))
+costfeas <- read.csv(paste0(input, "/CostFeas.csv"))
 costfeas <- costfeas[-1,] # Remove baseline values
 costfeas$Strategy <- as_factor(costfeas$Strategy)
 
@@ -724,11 +733,13 @@ write.csv(exp.perf, paste0(results, "/ExpPerform_all.csv"), row.names = FALSE)
 
 Step 5: 
 
-This code performs the complementarity analysis using the consOpt R package developed by Nicolai Cryer <nkcryer@gmail.com> and updated by Abbey Camaclang with a number of bug fixes.  
+This code performs the complementarity analysis using the consOpt R package developed by Nicolai Cryer <nkcryer@gmail.com> and updated by Abbey Camaclang with a number of bug fixes. Note that this package is still under development; we recommend checking the results manually.
 
-Requires **ExpPerform_best.csv** from *expPerformance.R*, and the **CostFeas.csv** table of cost and feasibility for each strategy. Also requires a table **Combinations.csv** specifying which individual strategies are in the combination strategies.
+To install, download/clone the most recent version of the package from <https://github.com/ConservationDecisionsLab/consOpt.git>, open the .RProj file in R Studio and use R Studio tools to build and install the package. 
 
-NOTE: All strategies = includes combined strategies in list as well because internal code (1) does not double count costs, (2) uses the maximum benefit from any strategy as the "All strategy" benefit (does not consider synergy between the different strategies)
+You can also try installing from R using devtools, using the following command: devtools::install_github("ConservationDecisionsLab/consOpt")
+
+Requires **ExpPerform_all.csv** from previous step, and the **CostFeas.csv** table of cost and feasibility for each strategy. Also requires a table **Combinations.csv** specifying which individual strategies are in the combination strategies.
 
 ```{r}
 
@@ -742,18 +753,16 @@ library(dplyr)
 library(ggplot2)
 
 # Specify paths to subfolders within current working directory
-input <- here("analysis", "data", "raw") # where raw data files are located
-derived <- here("analysis", "data","Dec042023") # where compiled/summarized data are located
-results_pre <- here("analysis", "results","Dec042023") # where results of previous analysis are saved 
-results <- here("analysis", "results","Dec042023") # where results of analysis should be saved
-figures <- here("analysis", "figures","Dec042023") # where plots should be saved
+input <- here("data", "raw") # where raw data files are located
+derived <- here("data") # where compiled/summarized data are located
+results <- here("results") # where results of analysis should be saved
+figures <- here("figures") # where plots should be saved
 
 # Read in and prep data
-
 combos <- read.csv(paste0(input, "/Combinations.csv"), header = TRUE) # list of individual strategies that make up each strategy (in columns). Should have a column for baseline and all strategies
-exp.perf <- read.csv(paste0(results_pre, "/ExpPerform_all.csv")) #from previous step 
-costfeas <- read.csv(paste0(results_pre, "/CostFeas.csv")) # estimated Cost and Feasibility for each Strategy (col 1), including Baseline
-costs <- costfeas$Cost.3disc #changed here 
+exp.perf <- read.csv(paste0(results, "/ExpPerform_all.csv")) #from previous step 
+costfeas <- read.csv(paste0(input, "/CostFeas.csv")) 
+costs <- costfeas$Cost.3disc 
 names(costs) <- costfeas$Strategy
 
 #' Create expected performance matrix for complementarity analysis (optimization)
@@ -771,7 +780,6 @@ best <- perf.transposed %>%
   mutate(Estimate = NULL) %>%
   column_to_rownames("Strategy")
 
-####rounding - justification: experts provided to whole numbers 
 best <- round(best, digits=0)
 
 write.csv(best, paste0(results, "/ExpPerform_best.csv"), row.names = FALSE)
@@ -783,19 +791,19 @@ write.csv(best, paste0(results, "/ExpPerform_best.csv"), row.names = FALSE)
 results.best <- Optimize(benefits.matrix = best, 
                     cost.vector = costs, 
                     combo.strategies = combos
-                    , thresholds = c(50.00,55.00,60.00) #do .00 not .01. #can put 2-3 thresholds 
+                    , thresholds = c(50.00, 60.00) #do .00 not .01. #can put 2-3 thresholds 
                     )
 
 write.csv(results.best, paste0(results, "/Complementarity_best.csv"), row.names = FALSE)
 
 #' Plot using plotting function included in the consOpt package
-optcurve.best <- PlotResults(results.best)
+# optcurve.best <- PlotResults(results.best)
 
 #' OR create custom plot function (based on plotting function in the package):
 #+ warning = FALSE, message = FALSE
 library(viridis)
 
-cols <- c("40" = "brown2", "50" = "goldenrod1", "60" = "darkolivegreen3", "70" = "darkmagenta")
+cols <- c("50" = "goldenrod1", "60" = "darkolivegreen3", "70" = "darkmagenta")
 
 PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
   
@@ -807,56 +815,59 @@ PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
   # Create plot object
   this.plot <- ggplot(tmp, aes(
     x = total_cost, 
-    y = number_of_species, 
-    group = threshold, 
-    # linetype = factor(threshold),
-    # shape = factor(threshold), 
-    label = ifelse(strategies=="Baseline"," ",strategies)
-  )
-  ) +
-    geom_step(aes(color = factor(threshold)), 
-      # size = 0.8,
-      # alpha = 0.6
+    y = number_of_species
+    , group = threshold
+    # , linetype = factor(threshold),
+    # , shape = factor(threshold), 
+    , label = ifelse(strategies=="Baseline"," ",strategies)
+    )
     ) +
+    geom_step(
+      aes(color = factor(threshold)) 
+      # , size = 0.8
+      # , alpha = 0.6
+      ) +
     geom_point(
-      aes(color = factor(threshold)),
-      size = 2
-      ,show.legend = FALSE
-    ) +
+      aes(color = factor(threshold))
+      , size = 2
+      , show.legend = FALSE
+      ) +
     theme_cowplot() +
     theme(legend.justification = c(1,0),
           legend.position = c(0.95, 0.05),
+          # legend.position = c(0.95,0.5), # use to plot pessimistic/lowest estimates instead of previous line
           legend.key.height = unit(0.6,"cm"),
           legend.key.width = unit(1, "cm"),
           legend.title = element_text(size = 12),
           legend.text = element_text(size = 12),
-          plot.margin = margin(0.5, 1, 0.5, 0.5, "cm")
+          plot.margin = margin(0.5, 1, 0.5, 0.5, "cm") 
           # legend.title.align=0.5
-    ) +scale_colour_manual(values = cols) +
+          ) + 
+    scale_colour_manual(values = cols) +
     scale_y_continuous(
       # labels = function (x) floor(x), 
       breaks = min(tmp$number_of_species):length(benefits.matrix),
       limits = c(min(tmp$number_of_species), length(benefits.matrix))
-    ) +
-    labs(x = "Total cost (millions)", 
-         y = "Number of groups secured"
+      ) +
+    labs(x = "Total cost (million CAD)", 
+         y = "Number of species groups secured"
          , color="Persistence\nthreshold (%)"
          # , linetype = "Persistence\nthreshold (%)"
          , shape = "Persistence\nthreshold (%)"
-    )
+         )
   
   if(draw.labels){
     this.plot <- this.plot + 
-      geom_text_repel(size = 4
+      geom_text_repel(size = 3
                       , hjust = "left"
-                      # ,nudge_x = 0.5,
-                      # nudge_y = -0.15
-                      #,xlim = c(0, max(tmp$total_cost)+5),
-                      # ylim = c(-0.5, max(tmp$number_of_species)+0.5),
-                      # show.legend = FALSE
-                      # # , direction = "both"
-      )
-  }
+                      , nudge_x = 20
+                      , nudge_y = -0.20
+                      # , xlim = c(0, max(tmp$total_cost)+5)
+                      # , ylim = c(-0.5, max(tmp$number_of_species)+0.5)
+                      # , show.legend = FALSE
+                      # , direction = "both"
+                      )
+    }
   
   plot(this.plot)
   this.plot
@@ -875,14 +886,14 @@ low <- perf.transposed %>%
   mutate(Estimate = NULL) %>%
   column_to_rownames("Strategy")
 
-low <- round(low, digits=0)
+low <- round(low, digits = 0)
 
 high <- perf.transposed %>%
   filter(grepl("High", Estimate)) %>%
   mutate(Estimate = NULL) %>%
   column_to_rownames("Strategy")
 
-high <- round(high, digits=0)
+high <- round(high, digits = 0)
 
 write.csv(low, paste0(results, "/ExpPerform_low.csv"), row.names = FALSE) 
 write.csv(high, paste0(results, "/ExpPerform_high.csv"), row.names = FALSE) 
@@ -891,18 +902,18 @@ write.csv(high, paste0(results, "/ExpPerform_high.csv"), row.names = FALSE)
 #' and the most optimistic scenario (highest estimates)
 #+ eval = FALSE
 
-cols <- c("40" = "brown2", "50" = "goldenrod1", "60" = "darkolivegreen3", "70" = "darkmagenta")
+# cols <- c("50" = "goldenrod1", "60" = "darkolivegreen3", "70" = "darkmagenta")
 
 results.low <- Optimize(benefits.matrix = low,
                   cost.vector = costs,
                   combo.strategies = combos
-                  , thresholds = c(40.01, 50.01)
+                  , thresholds = c(50.00)
                   )
 
 results.high <- Optimize(benefits.matrix = high,
                   cost.vector = costs,
                   combo.strategies = combos
-                  , thresholds = c(60.01, 70.01)
+                  , thresholds = c(60.00, 70.00)
                   ) 
 
 write.csv(results.low, paste0(results, "/Complementarity_low.csv"), row.names = FALSE)
@@ -919,13 +930,194 @@ optcurve.low <- PlotOptCurve(results.low, low, draw.labels = TRUE)
 optcurve.high <- PlotOptCurve(results.high, high, draw.labels = TRUE)
 
 # Save plots as pdf or tiff files
-ggsave(paste0(figures, "/Complementarity_low_4050.png"), optcurve.low, width = 180, height = 120, units = "mm")
-ggsave(paste0(figures, "/Complementarity_high_6070.png"), optcurve.high, width = 180, height = 120, units = "mm")
+ggsave(paste0(figures, "/Complementarity_low.png"), optcurve.low, width = 180, height = 120, units = "mm")
+ggsave(paste0(figures, "/Complementarity_high.png"), optcurve.high, width = 180, height = 120, units = "mm")
 
 
 ```
 
-Step 6: Uncertainty analysis (Apr-13)
+Step 5A: 
+
+This code performs the complementarity analysis as above, using estimates of the expected benefit (Benefit * Feasibility) instead of the expected probability of persistence.  
+
+Requires **ExpBenefits.csv** from Step 4, and the **CostFeas.csv** table of cost and feasibility for each strategy. Also requires a table **Combinations.csv** specifying which individual strategies are in the combination strategies.
+
+```{r}
+library(Matrix)
+library(consOpt)
+library(tidyverse)
+library(cowplot)
+library(here)
+library(ggplot2)
+library(viridis)
+
+# Specify paths to subfolders within current working directory
+input <- here("data", "raw") # where raw data files are located
+results <- here("results") # where results of analysis should be saved
+results_ben <- here("results") # where results of benefits analysis should be saved
+figures <- here("figures") # where plots should be saved
+
+combos <- read.csv(paste0(input, "/Combinations.csv"), header = TRUE) # list of individual strategies that make up each strategy (in columns). Should have a column for baseline and all strategies
+exp.ben <- read.csv(paste0(results, "/ExpBenefits.csv")) 
+costfeas <- read.csv(paste0(input, "/CostFeas.csv")) # estimated Cost and Feasibility for each Strategy (col 1), including Baseline
+costs <- costfeas$Cost.3disc  
+names(costs) <- costfeas$Strategy
+
+# Custom plot function:
+PlotOptCurve <- function(summary.results, benefits.matrix, draw.labels=TRUE){
+  
+  tmp <- summary.results
+  
+  tmp$total_cost <- (tmp$total_cost / 10^6) # rescale x-axis to millions
+  tmp$threshold <- round(tmp$threshold) # remove decimal points
+  
+  # Create plot object
+  this.plot <- ggplot(tmp, aes(
+    x = total_cost, 
+    y = number_of_species, 
+    group = threshold
+    # , linetype = factor(threshold)
+    # , shape = factor(threshold) 
+    , label = ifelse(strategies=="Baseline"," ",strategies)
+    )
+    ) +
+    geom_step(aes(color = factor(threshold)) 
+      # , size = 0.8,
+      # , alpha = 0.6
+      ) +
+    geom_point(
+      aes(color = factor(threshold))
+      , size = 2
+      , show.legend = FALSE
+      ) +
+    theme_cowplot() +
+    theme(legend.justification = c(1,0),
+          legend.position = c(0.95, 0.05),
+          legend.key.height = unit(0.6,"cm"),
+          legend.key.width = unit(1, "cm"),
+          legend.title = element_text(size = 12),
+          legend.text = element_text(size = 12),
+          plot.margin = margin(0.5, 1, 0.5, 0.5, "cm")
+          # legend.title.align=0.5
+          ) +
+    scale_colour_manual(values = cols) +
+    scale_y_continuous(
+      # labels = function (x) floor(x), 
+      breaks = min(tmp$number_of_species):length(benefits.matrix),
+      limits = c(min(tmp$number_of_species), length(benefits.matrix))
+      ) +
+    labs(x = "Total cost (million CAD)", 
+         y = "Number of species groups benefitting"
+         , color="Expected increase in\nprobability of persistence (%)"
+         # , linetype = Expected increase in\nprobability of persistence (%)"
+         , shape = "Expected increase in\nprobability of persistence (%)"
+         )
+  
+  if(draw.labels){
+    this.plot <- this.plot + 
+      geom_text_repel(size = 2
+                      , hjust = "left"
+                      , nudge_x = 20
+                      , nudge_y = -0.15
+                      # , xlim = c(0, max(tmp$total_cost)+5)
+                      # , ylim = c(-0.5, max(tmp$number_of_species)+0.5)
+                      # , show.legend = FALSE
+                      # , direction = "both"
+                      )
+    }
+  
+  plot(this.plot)
+  this.plot
+}
+
+# Add baseline values of zero here
+exp.ben$Wt.Best_Baseline <- 0 
+exp.ben$Wt.Low_Baseline <- 0 
+exp.ben$Wt.High_Baseline <- 0 
+exp.ben <- exp.ben %>%
+  select(Ecological.Group,Wt.Best_Baseline,Wt.Low_Baseline, Wt.High_Baseline, everything()) # re-ordering columns
+
+#' Create matrix for complementarity analysis (optimization)
+ben.transposed <- exp.ben[,-1] %>%
+  t() %>%
+  data.frame() %>%
+  setNames(exp.ben[,1]) %>%
+  mutate(Est.type = rownames(.)) %>%
+  separate(Est.type, c("Estimate", "Strategy"), sep = "[_]", remove = TRUE) %>%
+  relocate(Estimate, Strategy) %>%
+  remove_rownames()
+
+best.ben <- ben.transposed %>%
+  filter(grepl("Best", Estimate)) %>%
+  mutate(Estimate = NULL) %>%
+  column_to_rownames("Strategy")
+
+best.ben <- round(best.ben, digits=0)
+
+write.csv(best.ben, paste0(results, "/ExpBenefits_best.csv"), row.names = FALSE) 
+
+#' Complementarity analysis for most likely (best guess) estimates
+results.bestben <- Optimize(benefits.matrix = best.ben, 
+                    cost.vector = costs, 
+                    combo.strategies = combos
+                    , thresholds = c(15.00) #can change thresholds here
+                    )
+write.csv(results.bestben, paste0(results, "/Complementarity_best_Benefits.csv"), row.names = FALSE)
+
+# Plot using custom function above
+cols <- c("5" = "goldenrod1", "10" = "darkmagenta","15" = "brown2","20" = "darkolivegreen3")
+
+optcurve.bestben <- PlotOptCurve(results.bestben, best.ben, draw.labels = TRUE)
+
+ggsave(paste0(figures, "/Complementarity_best_Benefits.pdf"), optcurve.bestben, width = 180, height = 120, units = "mm")
+
+
+#' Uncertainty analysis
+# Create matrices for lowest and highest estimates
+low.ben <- ben.transposed %>%
+  filter(grepl("Low", Estimate)) %>%
+  mutate(Estimate = NULL) %>%
+  column_to_rownames("Strategy")
+
+low.ben <- round(low.ben, digits = 0)
+
+high.ben <- ben.transposed %>%
+  filter(grepl("High", Estimate)) %>%
+  mutate(Estimate = NULL) %>%
+  column_to_rownames("Strategy")
+
+high.ben <- round(high.ben, digits = 0)
+
+write.csv(low.ben, paste0(results, "/ExpBenefits_low.csv"), row.names = FALSE) 
+write.csv(high.ben, paste0(results, "/ExpBenefits_high.csv"), row.names = FALSE) 
+
+# Run complementarity analysis for the most pessimistic (lowest estimates) and most optimistic (highest estimates)
+results.lowben <- Optimize(benefits.matrix = low.ben,
+                  cost.vector = costs,
+                  combo.strategies = combos
+                  , thresholds = c(10.00, 15.00, 20.00)
+                  )
+
+results.highben <- Optimize(benefits.matrix = high.ben,
+                  cost.vector = costs,
+                  combo.strategies = combos
+                  , thresholds = c(10.00, 15.00, 20.00)
+                  ) 
+
+write.csv(results.lowben, paste0(results, "/Complementarity_low_Benefits.csv"), row.names = FALSE)
+write.csv(results.highben, paste0(results, "/Complementarity_high_Benefits.csv"), row.names = FALSE)
+
+
+# Plot results using the custom plot function above:
+optcurve.lowben <- PlotOptCurve(results.lowben, low.ben, draw.labels = TRUE)
+optcurve.highben <- PlotOptCurve(results.highben, high.ben, draw.labels = TRUE)
+
+ggsave(paste0(figures, "/Complementarity_low_Benefits.png"), optcurve.lowben, width = 180, height = 120, units = "mm")
+ggsave(paste0(figures, "/Complementarity_high_Benefits.png"), optcurve.highben, width = 180, height = 120, units = "mm")
+
+```
+
+Step 6: Uncertainty analysis (Apr-13) #Delete? or update
 
  Generates `MC` random samples from range of uncertainty in benefit and cost 
  estimates, calculates cost-effectiveness (CE) scores for each rep, and 
@@ -933,14 +1125,14 @@ Step 6: Uncertainty analysis (Apr-13)
  resulting from uncertainty.  
    
  Needs:  
- 1) **Estimates_tidy.csv** from *import.R*,  
+ 1) **Estimates_tidy.csv** from Step 1,  
  2) a .csv file **EcolGroupsList.csv** with ecological groups in columns and 
  the list of species for each group in rows,  
  3) a .csv file **SpecialCases.csv** listing only the estimates (from which
  expert, and for which ecol group and strategy) that require different
  weighting, along with the number of species in that group that the estimate
  is based on,  
- 4) **Benefits_total.rds** from *calculateCE.R*, and  
+ 4) **Benefits_total.rds** from Step 3, and  
  5) a table **CostFeas.csv** of strategy costs and feasibility.  
  
 ```{r}
@@ -960,11 +1152,11 @@ MC <- 1000 # number of iterations (reps) for uncertainty analysis
 u <- 0.3 # % variation (in costs) from the best estimate
 
 # Specify paths to subfolders within current working directory
-input <- here("analysis", "data", "raw") # where .csv files of benefit estimates are saved
-derived <- here("analysis", "data","Dec42023") # where compiled data tables should be saved
-results <- here("analysis", "results","Dec42023") # where results of analysis should be saved
-figures <- here("analysis", "figures","Dec42023")
-code <- here("analysis", "code")
+input <- here("data", "raw") # where .csv files of benefit estimates are saved
+derived <- here("data") # where compiled data tables should be saved
+results <- here("results") # where results of analysis should be saved
+figures <- here("figures")
+code <- here("code")
 
 # Load custom functions for calculating and weighting individual benefit estimates
 source(paste0(code, "/ptmfunc.R"))

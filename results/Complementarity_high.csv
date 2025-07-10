@@ -1,0 +1,14 @@
+"total_cost","strategies","species_groups","threshold","number_of_species","budget.max"
+0,"Baseline","Mixed forest species | Naturalized open habitat spp | Snakes and lizard | Working landscapes species",60,4,0
+27475428.26,"S3","Alvar species | Artificial structure dependent spp | Forest species | Oak savannah species | Riparian species | Riverine species | Sandy species | Wetland species | Mixed forest species | Naturalized open habitat spp | Snakes and lizard | Working landscapes species",60,12,27475428.26
+85104192.11,"S3 + S8","Alvar species | Artificial structure dependent spp | Forest species | Mussels | Oak savannah species | Riparian species | Riverine species | Sandy species | Wetland species | Mixed forest species | Naturalized open habitat spp | Snakes and lizard | Working landscapes species",60,13,87475428.26
+115981585.96,"S3 + S5","Alvar species | Artificial structure dependent spp | Forest species | Mussels | Oak savannah species | Riparian species | Riverine species | Sandy species | Turtles | Wetland species | Mixed forest species | Naturalized open habitat spp | Snakes and lizard | Working landscapes species",60,14,117475428.26
+2078071312,"S15","Alvar species | Artificial structure dependent spp | Bats | Forest species | Mussels | Oak savannah species | Riparian species | Riverine species | Sandy species | Turtles | Wetland species | Mixed forest species | Naturalized open habitat spp | Snakes and lizard | Working landscapes species",60,15,2078071312
+0,"Baseline","",70,0,0
+27475428.26,"S3","Working landscapes species",70,1,27475428.26
+100966624,"S2","Naturalized open habitat spp | Working landscapes species",70,2,100966624
+186070816.1,"S14","Artificial structure dependent spp | Forest species | Mixed forest species | Naturalized open habitat spp | Working landscapes species",70,5,186070816.1
+245213372.8,"S13","Forest species | Mixed forest species | Naturalized open habitat spp | Sandy species | Snakes and lizard | Working landscapes species",70,6,245213372.8
+402653683.5,"S7 + S14","Artificial structure dependent spp | Forest species | Mixed forest species | Naturalized open habitat spp | Sandy species | Snakes and lizard | Working landscapes species",70,7,417475428.26
+1779493841,"S11","Alvar species | Artificial structure dependent spp | Forest species | Mixed forest species | Naturalized open habitat spp | Sandy species | Snakes and lizard | Working landscapes species",70,8,1779493841
+2078071312,"S15","Alvar species | Artificial structure dependent spp | Forest species | Mixed forest species | Naturalized open habitat spp | Oak savannah species | Riparian species | Sandy species | Snakes and lizard | Wetland species | Working landscapes species",70,11,2078071312

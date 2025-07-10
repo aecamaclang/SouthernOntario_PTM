@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Ignore raw and compiled files and plots with individual expert estimates
+benefits/
+data/Estimates_clean.csv
+data/Estimates_tidy.csv
+data/Estimates_wide.csv
+exp*.pdf

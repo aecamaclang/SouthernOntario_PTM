@@ -1,0 +1,4 @@
+"total_cost","strategies","species_groups","threshold","number_of_species","budget.max"
+0,"Baseline","",50,0,0
+27475428.26,"S3","Working landscapes species",50,1,27475428.26
+1779493841,"S11","Forest species | Naturalized open habitat spp | Sandy species | Working landscapes species",50,4,1779493841
