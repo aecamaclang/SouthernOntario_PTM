@@ -11,13 +11,13 @@ This archive is organized as follows:
 **code/**
 - *01-Compile-and-Aggregate.Rmd* compiles individual expert estimates of probabilities of persistence into a single table, and aggregates (averages) them to obtain a single value. Also calculates expected benefit and expected probability of persistence by weighting benefit estimates by the feasibility of each strategy.
 - *02-Expert-plots.Rmd* creates summary plots of individual estimates of probabilities of persistence used for expert review and revision. Also creates plots of the aggregated estimates.
-- *03-CE-test.Rmd* calculates cost-effectiveness of candidate management strategies
+- *03-CE-test.Rmd* calculates cost-effectiveness of candidate management strategies.
 - *04_Complementarity.Rmd* identifies Pareto-optimal strategies based on maximizing the total number of species groups that achieve a specified threshold probability of persistence (or benefit achieved) for the least total cost. Also performs uncertainty analyses.
 - *05_Manuscript-figures.Rmd* creates the figures used in the manuscript and appendices.
 
 **data/raw/**
 - contains the raw and summary data files used as inputs for the analysis. 
-- The *benefits/* subfolder is where .csv data files of individual expert estimates (expXX.csv, where XX are expert ID numbers) are typically stored; note, however, that these files have been excluded from this archive to maintain expert confidentiality. A blank table (exp00.csv) has been provided instead for reference.
+- The *benefits/* subfolder is where .csv data files of individual expert estimates (*exp**XX**.csv*, where XX are expert ID numbers) are typically stored; note, however, that these files have been excluded from this archive to maintain expert confidentiality. A blank table (*exp00.csv*) has been provided instead for reference.
 
 **docs/**
 - contains .html versions of the R code for viewing. 
