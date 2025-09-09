@@ -16,7 +16,7 @@ This archive is organized as follows:
 - *05_Manuscript-figures.Rmd* creates the figures used in the manuscript and appendices.
 
 **data/raw/**
-- contains the raw and summary data files used as inputs for the analysis. 
+- contains the raw and summary data files used as inputs for the analysis. Also includes a blank copy of the Benefits worksheet provided to experts for eliciting estimates of probabilities of persistence.
 - The *benefits/* subfolder is where .csv data files of individual expert estimates (*exp**XX**.csv*, where XX are expert ID numbers) are typically stored; note, however, that these files have been excluded from this archive to maintain expert confidentiality. A blank table (*exp00.csv*) has been provided instead for reference.
 
 **docs/**
