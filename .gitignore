@@ -2,11 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
-
 # Ignore raw and compiled files and plots that contain individual expert estimates
 exp*.csv
 !exp00.csv
-data/Estimates_clean.csv
-data/Estimates_tidy.csv
-data/Estimates_wide.csv
+Estimates_clean.csv
+Estimates_tidy.csv
+Estimates_wide.csv
 exp*.pdf
+old

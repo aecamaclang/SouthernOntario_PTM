@@ -1,0 +1,8 @@
+"total_cost","strategies","species_groups","threshold","number_of_species","budget.max","annual_cost"
+0,"Baseline","",15,0,0,0
+88506157.7,"S5","Turtles",15,1,88506157.7,4829268.60376886
+186070816.07,"S14","Alvar species | Forest species",15,2,186070816.07,10152807.1433215
+274576973.77,"S5 + S14","Alvar species | Forest species | Turtles",15,3,3e+08,14982075.7470904
+1767033374.34,"S5 + S10","Alvar species | Forest species | Naturalized open habitat spp | Turtles",15,4,1.77e+09,96416780.6881522
+1779493840.61,"S11","Alvar species | Forest species | Naturalized open habitat spp | Sandy species | Turtles | Wetland species",15,6,1779493840.61,97096676.1904516
+2078071311.74,"S15","Alvar species | Artificial structure dependent spp | Bats | Forest species | Mixed forest species | Naturalized open habitat spp | Oak savannah species | Riparian species | Sandy species | Turtles | Wetland species",15,11,2078071311.74,113388320.123389

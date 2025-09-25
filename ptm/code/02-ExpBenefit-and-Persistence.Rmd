@@ -1,0 +1,129 @@
+---
+title: "Calculate expected benefit and probability of persistence"
+author: "Abbey Camaclang"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+This code:
+
+1) calculates expected benefit (mean benefit * feasibility)  
+2) calculates expected performance (mean baseline + expected benefit)
+
+Requires **Mean_benefits.csv** and **Mean_baseline.csv**, and
+a **CostFeas.csv** table of strategy cost and feasibility
+
+```{r expperfom, message = FALSE}
+library(tidyverse)
+library(here)
+
+# Specify paths to subfolders within current working directory
+input <- here("data", "raw")
+results <- here("results") 
+
+# Read in and prep data
+benefit <- read.csv(paste0(results, "/Mean_benefits.csv"))
+baseline <- read.csv(paste0(results, "/Mean_baseline.csv"))
+
+costfeas <- read.csv(paste0(input, "/CostFeas.csv"))
+costfeas <- costfeas[-1,] # Removes baseline values
+costfeas$Strategy <- as_factor(costfeas$Strategy)
+
+# Format table
+long <- gather(benefit, key = Est.type, value = Value, 
+               colnames(benefit)[2]:colnames(benefit)[ncol(benefit)]) %>%
+  separate(Est.type, c("Estimate", "Strategy"), sep = "[_]", remove = FALSE) %>%
+  mutate(Strategy = as_factor(Strategy), 
+         Ecological.Group = as_factor(Ecological.Group),
+         Est.type = as_factor(Est.type)) 
+
+# Calculate expected benefit 
+joined <- left_join(long, costfeas, by = "Strategy") %>%
+  mutate(Avg.ExpBen = Value * avg.Feas) 
+
+# Reformat table and output results
+exp.ben <- joined %>%
+  select(c(Ecological.Group, Est.type, Avg.ExpBen)) %>% 
+  spread(key = Est.type, value = Avg.ExpBen)
+
+write.csv(exp.ben, paste0(results, "/ExpBenefits.csv"), row.names = FALSE) 
+
+# Join with baseline estimates to make sure the estimates line up correctly
+joined.base <- left_join(baseline, exp.ben, by = "Ecological.Group") 
+
+# Calculate expected performance
+base.mat <- joined.base[,2:4]
+perf.mat <- joined.base[,5:ncol(joined.base)] + as.matrix(base.mat)
+
+exp.perf <- cbind(joined.base$Ecological.Group,base.mat,perf.mat)
+names(exp.perf)[1] <- "Ecological.Group"
+
+write.csv(exp.perf, paste0(results, "/ExpPerformance.csv"), row.names = FALSE)
+```
+
+**Pointrange plots**
+
+Creates plots of the best guess, lowest, and highest estimates of the expected probability of persistence given a table feasibility-weighted mean estimates (**ExpPerformance.csv**).  
+
+```{r avgplots, message = FALSE}
+library(tidyverse)
+library(cowplot)
+library(gridExtra)
+library(here)
+
+# Specify paths to subfolders within current working (R project) directory
+derived <- here("data") 
+results <- here("results") 
+figures <- here("figures") # where plots will be saved
+explots <- here("figures/expertplots") # where individual files for expert review will be saved 
+
+# Read in and format data for plotting
+persistence <- read_csv(paste0(results, "/ExpPerformance.csv"))
+
+grp.levels <- unique(persistence$Ecological.Group)
+persistence$Ecological.Group <- factor(persistence$Ecological.Group, levels = grp.levels)
+
+persistence.long <- persistence %>%
+  gather(., key = "Estimate", value = "Value", -Ecological.Group) %>%
+  separate(., Estimate, c("Est.Type", "Strategy"), sep = "[_]", remove = TRUE) %>%
+  mutate(Strategy = factor(Strategy, levels = unique(Strategy)))
+
+plot.data <- persistence.long %>%
+  spread(., 
+         key = Est.Type, 
+         value = Value)
+
+strat.levels <- levels(plot.data$Strategy)
+
+baseline.data <- plot.data[which(plot.data$Strategy=="Baseline"),]
+strategy.data <- plot.data[which(plot.data$Strategy!="Baseline"),]
+
+# Create plot
+temp.plot3 <- 
+  ggplot(strategy.data, aes(x = Strategy, y = Wt.Best) ) +
+  geom_pointrange(aes(ymin = Wt.Low, ymax = Wt.High)) +
+  geom_hline(aes(yintercept = Wt.Best), baseline.data, colour = "blue") +
+  geom_hline(aes(yintercept = Wt.Low), baseline.data, colour = "blue", lty = "dashed") +
+  geom_hline(aes(yintercept = Wt.High), baseline.data, colour = "blue", lty = "dashed") +
+  theme_cowplot() +  
+  theme(plot.margin = unit(c(1.5, 1, 1.5, 1), "cm"), # t, r, b and l margins around the plot area
+        panel.spacing = unit(1, "lines"), # adjust margins and between panels of the plot 
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)), 
+        axis.text.x = element_text(size = 8, angle = 65, hjust = 1, vjust = 1)
+        , plot.caption = element_text(size =10, hjust = 0)
+        ) +
+  facet_wrap( ~ Ecological.Group, nrow = 4, ncol = 4) +  # one panel per ecological group
+  theme(strip.text = element_text(size=8))+
+  labs(x = "Strategies",
+       y = "Probability of persistence (%)"
+       , caption = str_wrap("Estimated probability of persistence of each ecological group under each of the management strategies (Best Guess = solid black dots, Lowest and- Highest estimates = black vertical lines), compared to the probability under the Baseline scenario (blue horizontal lines: Best Guess = solid lines, Lowest and Highest Estimates = dashed lines). Values are based on expert estimates averaged over the number of experts that provided estimates for the strategy and ecological group.", 100)
+       ) +  
+  ylim(0, 100) 
+
+# Save as .pdf
+ggsave(filename=paste0(explots, "/ExpPerformance_plot.pdf"), 
+       temp.plot3, 
+       width = 8.5, height = 11, 
+       units = "in")
+
+```

@@ -1,0 +1,76 @@
+---
+title: "Calculate cost-effectiveness"
+author: "Abbey Camaclang"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+This calculates cost-effectiveness (CE) scores and ranks strategies by Benefit, Cost, and CE. 
+
+Requires the following .csv files as inputs
+
+1) **Estimates_avg_benefits.csv**: table of mean benefit estimates  
+2) **EcolGroupsList.csv**: table with lists of species in each species/ecological group, and   
+3) **CostFeas.csv**: table of costs and feasibility of each strategy
+
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(here)
+
+# Set scaling factor to get cost and benefits in roughly the same order of magnitude
+a <- 10^6
+
+# Specify paths to subfolders within current working directory
+input <- here("data", "raw") 
+results <- here("results") 
+
+# Read in and prep data
+costfeas <- read.csv(paste0(input, "/CostFeas.csv"))
+costfeas <- costfeas[-1,] # Remove baseline values
+costfeas$Strategy <- as_factor(costfeas$Strategy)
+names(costfeas)[str_which(names(costfeas), "3")] <- "Cost" # PV with 3% discount rate 
+names(costfeas)[str_which(names(costfeas), "Feas")] <- "Avg.Feas" 
+costfeas <- select(costfeas, c("Strategy", "Cost", "Avg.Feas"))
+
+grplist <- read_csv(paste0(input, "/EcolGroupsList.csv")) 
+numspp <- apply(grplist, MARGIN = 2, # number of species in each group
+                FUN = function(x) length(x[!is.na(x)]) )
+
+benefit.avg <- read.csv(paste0(results, "/Mean_benefits.csv"))
+
+# Weight benefits by number of species in group (multiply)
+ben.grpwtd <- benefit.avg[,2:ncol(benefit.avg)]*numspp
+ben.grpwtd <- cbind(benefit.avg[,1], ben.grpwtd)
+names(ben.grpwtd)[1] <- "Ecological.Group"
+
+# write_csv(ben.grpwtd, paste0(results, "/Estimates_avg_benefits_groupwtd.csv"))
+
+# Calculate total benefit of each strategy (sum across all species groups) 
+bestben <- ben.grpwtd[,-1] %>%
+  t() %>%
+  data.frame() %>%
+  setNames(ben.grpwtd[,1]) %>%
+  filter(grepl("Best", rownames(.))) 
+
+bestben.sum <- data.frame(rowSums(bestben)) %>%
+  mutate(Est.type = rownames(.)) %>%
+  separate(Est.type, c("Estimate", "Strategy"), sep = "[_]", remove = TRUE) %>% 
+  mutate(Estimate = NULL) %>%
+  relocate(Strategy) %>%
+  setNames(c("Strategy", "Benefit")) %>%
+  mutate(Strategy = as_factor(Strategy))
+
+# Calculate cost-effectiveness and rank strategies
+CE_table <- full_join(bestben.sum, costfeas, by="Strategy")%>%
+  mutate(Exp.Benefit = Benefit * Avg.Feas) %>% 
+  mutate(CE = (Exp.Benefit/Cost)*a) %>% # re-scale using scaling factor
+  mutate(CE_rank = rank(-CE), 
+         ExpBenefit_rank = rank(-Exp.Benefit),  
+         Cost_rank = rank(Cost)) 
+
+write.csv(CE_table, paste0(results, "/CE_Scores.csv"), row.names = FALSE)
+```
+
+```{r table, echo = FALSE}
+knitr::kable(CE_table)
+```

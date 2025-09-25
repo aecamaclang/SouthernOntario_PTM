@@ -1,0 +1,9 @@
+"total_cost","strategies","species_groups","threshold","number_of_species","budget.max","annual_cost"
+0,"Baseline","Working landscapes species",50,0,0,0
+88506157.7,"S5","Snakes and lizard | Working landscapes species",50,0,88506157.7,4829268.60376886
+100966623.96,"S2","Artificial structure dependent spp | Naturalized open habitat spp | Working landscapes species",50,1,100966623.96,5509164.10552262
+186070816.07,"S14","Artificial structure dependent spp | Forest species | Mixed forest species | Naturalized open habitat spp | Working landscapes species",50,1,186070816.07,10152807.1433215
+274576973.77,"S5 + S14","Artificial structure dependent spp | Forest species | Mixed forest species | Naturalized open habitat spp | Snakes and lizard | Working landscapes species",50,1,297475428.26,14982075.7470904
+402653683.42,"S7 + S14","Artificial structure dependent spp | Forest species | Mixed forest species | Naturalized open habitat spp | Sandy species | Snakes and lizard | Working landscapes species",50,1,417475428.26,21970480.2701213
+1779493840.61,"S11","Alvar species | Artificial structure dependent spp | Forest species | Mixed forest species | Naturalized open habitat spp | Riparian species | Sandy species | Snakes and lizard | Wetland species | Working landscapes species",50,4,1779493840.61,97096676.1904516
+2078071311.74,"S15","Alvar species | Artificial structure dependent spp | Forest species | Mixed forest species | Mussels | Naturalized open habitat spp | Oak savannah species | Riparian species | Sandy species | Snakes and lizard | Wetland species | Working landscapes species",50,4,2078071311.74,113388320.123389
