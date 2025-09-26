@@ -1,6 +1,6 @@
 # PTM Analysis
 
-R project folder for the cost-effectiveness and complementarity analyses of the PTM
+R project folder for the cost-effectiveness and complementarity analyses of the PTM. Data processing and analyses were performed using R version 4.5.1 (2025-06-13 ucrt) in RStudio 2025.05.1+513 for windows.
 
 **/code/**
 - *01-Compile-Aggregate-Plot.Rmd* compiles individual expert estimates of probabilities of persistence into a single table, and aggregates (averages) them to obtain a single value. Also creates summary plots of individual estimates as well as aggregated (mean) estimates of probabilities of persistence used for expert review and revision.
