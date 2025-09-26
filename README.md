@@ -8,5 +8,5 @@ A pre-print version of the manuscript is available from EcoEvoRxiv at <https://d
 
 **/ptm/** contains data and code for the cost-effectiveness and complementarity analyses
 
-**/carbon-cobenefits/** contains data and code used to estimate potential carbon co-benefits of selected actions in the PTM
+**/carbon_cobenefits/** contains data and code used to estimate potential carbon co-benefits of selected actions in the PTM
 
