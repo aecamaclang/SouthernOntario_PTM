@@ -139,7 +139,9 @@ barplot.1115 <- ggplot(best.B1115,
        y = "Expected probability of persistence (%)", 
        fill = "Strategy")
 
+# ggsave(paste0(figures, "/Figure2b.pdf"), barplot.1115, width = 10, height = 8, units = "in")
 ggsave(paste0(figures, "/Figure2.pdf"), barplot.1115, width = 180, height = 120, units = "mm")
+# ggsave(paste0(figures, "/Figure2.png"), barplot.1115, width = 180, height = 120, units = "mm")
 ```
 
 ```{r Fig2ins, echo=FALSE, warning = FALSE}
@@ -166,6 +168,7 @@ cols <- c("0" = alpha(c("white"),0), "1" = "#FFEC8B")
 optcurve.best.ann <- PlotOptCurve(results.best, numspp, tlabel, draw.labels = TRUE) +
   annotate("text", x = 0, y = 16, label = caption, size = 3, hjust = 0, vjust = 1)
 
+# ggsave(paste0(figures, "/Figure3b.pdf"), optcurve.best.ann, width = 10, height = 8, units = "in")
 ggsave(paste0(figures, "/Figure3.pdf"), optcurve.best.ann, width = 180, height = 120, units = "mm")
 ```
 
